@@ -1,0 +1,111 @@
+% !TEX program = xelatex
+% =====================================================================
+%  FamilyConnect -- Đồ án Thiết kế Cơ sở dữ liệu
+%  Biên dịch bằng XeLaTeX (khuyến nghị) hoặc LuaLaTeX vì tài liệu dùng
+%  tiếng Việt có dấu và font Unicode.
+% =====================================================================
+\documentclass[12pt,a4paper]{report}
+
+% ---------- Trang & lề ----------
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% ---------- Phông chữ & tiếng Việt (XeLaTeX/LuaLaTeX) ----------
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setmainfont{texgyretermes}[
+  Path = fonts/,
+  Extension = .otf,
+  UprightFont = *-regular,
+  BoldFont = *-bold,
+  ItalicFont = *-italic,
+  BoldItalicFont = *-bolditalic,
+  Ligatures = TeX,
+]
+% Font (TeX Gyre Termes, kiểu Times) được nạp trực tiếp từ file .otf trong
+% thư mục fonts/ đi kèm dự án -- KHÔNG phụ thuộc font cài trên hệ điều hành
+% hay trên server biên dịch, nên tránh được lỗi "font cannot be found" hay
+% gặp trên Overleaf/máy khác nhau. Nếu muốn dùng font hệ thống thay thế:
+% \setmainfont{Noto Serif}
+% \setmainfont{Times New Roman}
+
+\setmonofont{texgyrecursor}[
+  Path = fonts/,
+  Extension = .otf,
+  UprightFont = *-regular,
+  BoldFont = *-bold,
+  ItalicFont = *-italic,
+  BoldItalicFont = *-bolditalic,
+  Scale = 0.90,
+]
+% Tương tự, font code (TeX Gyre Cursor, kiểu Courier) cũng nạp trực tiếp từ
+% file trong fonts/. Nếu muốn dùng font hệ thống thay thế:
+% \setmonofont{DejaVu Sans Mono}[Scale=0.85]
+% \setmonofont{Consolas}
+
+% ---------- Hình ảnh, bảng dài, trang xoay ----------
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{booktabs}
+
+% ---------- Code listing (SQL / bash) ----------
+\usepackage{xcolor}
+\usepackage{listings}
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{codekw}{RGB}{0,0,180}
+\definecolor{codecom}{RGB}{0,130,0}
+\definecolor{codestr}{RGB}{170,20,20}
+\lstdefinestyle{code}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecom}\itshape,
+  stringstyle=\color{codestr},
+  breaklines=true,
+  breakatwhitespace=false,
+  showstringspaces=false,
+  frame=single,
+  rulecolor=\color{gray!50},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  tabsize=4,
+  columns=fullflexible,
+  keepspaces=true,
+}
+\lstset{style=code}
+
+% ---------- Liên kết & mục lục ----------
+\usepackage[hidelinks]{hyperref}
+\usepackage{bookmark}
+
+\title{Thiết kế cơ sở dữ liệu cho hệ thống FamilyConnect}
+\author{Huỳnh Thanh Vũ}
+\date{TP.HCM, 2026}
+
+\begin{document}
+
+% ---------- Trang bìa ----------
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+\input{cover.tex}
+\end{titlepage}
+
+% ---------- Nội dung (mỗi chương một file trong chapters/) ----------
+\input{chapters/00_frontmatter}
+\input{chapters/01_mo_dau}
+\input{chapters/02_chuong_1_tong_quan_va_quy_trinh_thiet_ke}
+\input{chapters/03_chuong_2_thiet_ke_quan_niem_erd_eer}
+\input{chapters/04_chuong_3_thiet_ke_logic_phu_thuoc_ham_va_chuan_hoa}
+\input{chapters/05_chuong_4_thiet_ke_vat_ly}
+\input{chapters/06_chuong_5_ket_luan_va_huong_phat_trien}
+\input{chapters/07_tai_lieu_tham_khao}
+\input{chapters/08_phu_luc_a_script_t_sql_tao_co_so_du_lieu_familyconnectdb}
+\input{chapters/09_phu_luc_b_bang_tong_hop_quan_he_thuoc_tinh_dien_giai_kieu_du_lieu}
+
+\end{document}

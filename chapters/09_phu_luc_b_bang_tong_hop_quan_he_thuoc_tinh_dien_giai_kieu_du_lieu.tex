@@ -1,0 +1,229 @@
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{PHỤ LỤC B: BẢNG TỔNG HỢP QUAN HỆ – THUỘC TÍNH – DIỄN GIẢI – KIỂU DỮ LIỆU}
+{\LARGE\bfseries PHỤ LỤC B: BẢNG TỔNG HỢP QUAN HỆ – THUỘC TÍNH – DIỄN GIẢI – KIỂU DỮ LIỆU}\par\vspace{1em}
+
+\emph{Hệ thống FamilyConnect — Tổng hợp lược đồ quan hệ mức vật lý (33 quan hệ), biên soạn dựa trên lược đồ quan hệ đã chuẩn hóa (Chương 3) và bảng ánh xạ kiểu dữ liệu logic sang vật lý trên Microsoft SQL Server 2022 (Chương 4) của đồ án.}
+
+\begin{longtable}{|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|}
+\hline
+\textbf{Quan hệ} & \textbf{Thuộc tính} & \textbf{Diễn giải} & \textbf{Kiểu dữ liệu (SQL Server)} \\ \hline
+\endfirsthead
+\hline
+\textbf{Quan hệ} & \textbf{Thuộc tính} & \textbf{Diễn giải} & \textbf{Kiểu dữ liệu (SQL Server)} \\ \hline
+\endhead
+\textbf{Users} & \textbf{UserId} & Khóa chính, định danh duy nhất tài khoản người dùng & UNIQUEIDENTIFIER (PK, DEFAULT NEWID()) \\ \hline
+\textbf{Users} & Username & Tên đăng nhập, duy nhất trong hệ thống & VARCHAR(50) \\ \hline
+\textbf{Users} & Email & Địa chỉ email dùng để đăng nhập/khôi phục mật khẩu & VARCHAR(100) \\ \hline
+\textbf{Users} & Phone & Số điện thoại liên hệ & VARCHAR(20) \\ \hline
+\textbf{Users} & PasswordHash & Mật khẩu đã băm (hash), không lưu dạng plaintext & VARCHAR(255) \\ \hline
+\textbf{Users} & FullName & Họ tên đầy đủ của người dùng (Unicode có dấu) & NVARCHAR(100) \\ \hline
+\textbf{Users} & AvatarUrl & Đường dẫn ảnh đại diện & VARCHAR(255) \\ \hline
+\textbf{Users} & Status & Trạng thái tài khoản: active/inactive/suspended/pending (RB-1) & VARCHAR(20) CHECK \\ \hline
+\textbf{Users} & LastLoginAt & Thời điểm đăng nhập gần nhất & DATETIME2, NULL \\ \hline
+\textbf{Users} & CreatedAt & Thời điểm tạo tài khoản & DATETIME2 \\ \hline
+\textbf{Users} & UpdatedAt & Thời điểm cập nhật hồ sơ gần nhất & DATETIME2 \\ \hline
+\textbf{UserProfiles} & \textbf{UserId} & Khóa chính đồng thời là khóa ngoại tới Users (chia sẻ khóa, quan hệ nhận dạng 1:1) & UNIQUEIDENTIFIER (PK/FK) \\ \hline
+\textbf{UserProfiles} & DateOfBirth & Ngày sinh của người dùng & DATE \\ \hline
+\textbf{UserProfiles} & Gender & Giới tính & VARCHAR(10) \\ \hline
+\textbf{UserProfiles} & Address & Địa chỉ liên hệ & NVARCHAR(255) \\ \hline
+\textbf{UserProfiles} & Bio & Tiểu sử/giới thiệu bản thân & NVARCHAR(MAX) \\ \hline
+\textbf{UserProfiles} & UpdatedAt & Thời điểm cập nhật hồ sơ & DATETIME2 \\ \hline
+\textbf{Roles} & \textbf{RoleId} & Khóa chính, định danh vai trò & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{Roles} & RoleName & Tên vai trò (VD: FamilyAdmin, Moderator, Member) & NVARCHAR(50) \\ \hline
+\textbf{Roles} & Description & Mô tả chi tiết vai trò & NVARCHAR(255) \\ \hline
+\textbf{Permissions} & \textbf{PermissionId} & Khóa chính, định danh quyền hạn & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{Permissions} & PermissionCode & Mã quyền hạn dùng trong tầng ứng dụng (ASCII) & VARCHAR(50) \\ \hline
+\textbf{Permissions} & Description & Mô tả chi tiết quyền hạn & NVARCHAR(255) \\ \hline
+\textbf{RolePermissions} & \textbf{RoleId} & Vai trò được cấp quyền & UNIQUEIDENTIFIER (PK, FK → Roles) \\ \hline
+\textbf{RolePermissions} & PermissionId & Quyền hạn được gán cho vai trò & UNIQUEIDENTIFIER (PK, FK → Permissions) \\ \hline
+\textbf{Families} & \textbf{FamilyId} & Khóa chính, định danh dòng họ & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{Families} & FamilyName & Tên dòng họ/gia đình & NVARCHAR(150) \\ \hline
+\textbf{Families} & Origin & Nguồn gốc, quê quán của dòng họ & NVARCHAR(255) \\ \hline
+\textbf{Families} & Description & Mô tả chi tiết về dòng họ & NVARCHAR(MAX) \\ \hline
+\textbf{Families} & CoverImageUrl & Ảnh bìa đại diện của dòng họ & VARCHAR(255) \\ \hline
+\textbf{Families} & CreatedBy & Người dùng đã tạo hồ sơ dòng họ & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{Families} & CreatedAt & Thời điểm tạo hồ sơ dòng họ & DATETIME2 \\ \hline
+\textbf{UserRoles} & \textbf{UserId} & Người dùng được gán vai trò & UNIQUEIDENTIFIER (PK, FK → Users) \\ \hline
+\textbf{UserRoles} & RoleId & Vai trò được gán & UNIQUEIDENTIFIER (PK, FK → Roles) \\ \hline
+\textbf{UserRoles} & FamilyId & Dòng họ mà vai trò có hiệu lực (phạm vi theo ngữ cảnh) & UNIQUEIDENTIFIER (PK, FK → Families) \\ \hline
+\textbf{Branches} & \textbf{BranchId} & Khóa chính, định danh chi nhánh & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{Branches} & FamilyId & Dòng họ sở hữu chi nhánh & UNIQUEIDENTIFIER (FK → Families) \\ \hline
+\textbf{Branches} & ParentBranchId & Chi nhánh cha trong cây phân cấp (tự tham chiếu), NULL nếu là chi nhánh gốc & UNIQUEIDENTIFIER (FK → Branches), NULL \\ \hline
+\textbf{Branches} & BranchName & Tên chi/nhánh & NVARCHAR(100) \\ \hline
+\textbf{Branches} & Description & Mô tả chi nhánh & NVARCHAR(255) \\ \hline
+\textbf{FamilyMembers} & \textbf{MemberId} & Khóa chính, định danh thành viên gia phả & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{FamilyMembers} & FamilyId & Dòng họ mà thành viên thuộc về & UNIQUEIDENTIFIER (FK → Families) \\ \hline
+\textbf{FamilyMembers} & BranchId & Chi nhánh của thành viên trong dòng họ & UNIQUEIDENTIFIER (FK → Branches), NULL \\ \hline
+\textbf{FamilyMembers} & UserId & Tài khoản liên kết (NULL nếu thành viên đã mất hoặc chưa có tài khoản) & UNIQUEIDENTIFIER (FK → Users), NULL \\ \hline
+\textbf{FamilyMembers} & FullName & Họ tên thành viên gia phả & NVARCHAR(100) \\ \hline
+\textbf{FamilyMembers} & Gender & Giới tính & VARCHAR(10) \\ \hline
+\textbf{FamilyMembers} & DateOfBirth & Ngày sinh & DATE, NULL \\ \hline
+\textbf{FamilyMembers} & DateOfDeath & Ngày mất — bắt buộc có nếu IsAlive = 0 (RB-3) & DATE, NULL \\ \hline
+\textbf{FamilyMembers} & IsAlive & Cờ còn sống/đã mất; lưu trực tiếp để truy vấn nhanh không cần suy diễn lại & BIT \\ \hline
+\textbf{FamilyMembers} & BirthPlace & Nơi sinh & NVARCHAR(255) \\ \hline
+\textbf{FamilyMembers} & GenerationLevel & Thứ bậc thế hệ trong dòng họ & INT \\ \hline
+\textbf{FamilyMembers} & Biography & Tiểu sử thành viên & NVARCHAR(MAX) \\ \hline
+\textbf{FamilyMembers} & AvatarUrl & Ảnh đại diện thành viên & VARCHAR(255) \\ \hline
+\textbf{FamilyMembers} & CreatedAt & Thời điểm tạo bản ghi thành viên & DATETIME2 \\ \hline
+\textbf{ParentChildRelationships} & \textbf{RelationshipId} & Khóa chính thay thế (UUID) của bản ghi quan hệ cha–con & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{ParentChildRelationships} & ParentMemberId & Thành viên đóng vai trò cha/mẹ & UNIQUEIDENTIFIER (FK → FamilyMembers) \\ \hline
+\textbf{ParentChildRelationships} & ChildMemberId & Thành viên đóng vai trò con — phải khác ParentMemberId (RB-4) & UNIQUEIDENTIFIER (FK → FamilyMembers) \\ \hline
+\textbf{ParentChildRelationships} & RelationshipType & Loại quan hệ: biological/adopted/step... & VARCHAR(20) \\ \hline
+\textbf{Marriages} & \textbf{MarriageId} & Khóa chính, định danh cuộc hôn nhân & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{Marriages} & Spouse1Id & Thành viên vợ/chồng thứ nhất & UNIQUEIDENTIFIER (FK → FamilyMembers) \\ \hline
+\textbf{Marriages} & Spouse2Id & Thành viên vợ/chồng thứ hai — phải khác Spouse1Id (RB-9) & UNIQUEIDENTIFIER (FK → FamilyMembers) \\ \hline
+\textbf{Marriages} & MarriageDate & Ngày kết hôn & DATE, NULL \\ \hline
+\textbf{Marriages} & DivorceDate & Ngày ly hôn (nếu có) & DATE, NULL \\ \hline
+\textbf{Marriages} & Status & Trạng thái hôn nhân: married/divorced/widowed & VARCHAR(20) \\ \hline
+\textbf{MemberVerifications} & \textbf{VerificationId} & Khóa chính thay thế (UUID), độc lập — không phải khóa ghép của thực thể yếu & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{MemberVerifications} & MemberId & Thành viên cần xác minh thông tin (ON DELETE CASCADE) & UNIQUEIDENTIFIER (FK → FamilyMembers) \\ \hline
+\textbf{MemberVerifications} & RequestedBy & Người dùng gửi yêu cầu xác minh & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{MemberVerifications} & Status & Trạng thái yêu cầu: pending/approved/rejected & VARCHAR(20) \\ \hline
+\textbf{MemberVerifications} & EvidenceUrl & Đường dẫn tài liệu minh chứng & VARCHAR(255) \\ \hline
+\textbf{MemberVerifications} & VerifiedBy & Người duyệt yêu cầu — phải có vai trò trong đúng dòng họ của thành viên (RB-7) & UNIQUEIDENTIFIER (FK → Users), NULL \\ \hline
+\textbf{MemberVerifications} & VerifiedAt & Thời điểm duyệt yêu cầu & DATETIME2, NULL \\ \hline
+\textbf{MemberVerifications} & CreatedAt & Thời điểm tạo yêu cầu & DATETIME2 \\ \hline
+\textbf{Posts} & \textbf{PostId} & Khóa chính, định danh bài đăng & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{Posts} & FamilyId & Dòng họ mà bài đăng thuộc về (ON DELETE CASCADE) & UNIQUEIDENTIFIER (FK → Families) \\ \hline
+\textbf{Posts} & AuthorId & Người dùng đã liên kết tài khoản viết bài đăng & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{Posts} & PostType & Loại bài đăng: text/image/video... & VARCHAR(20) \\ \hline
+\textbf{Posts} & Content & Nội dung bài đăng & NVARCHAR(MAX) \\ \hline
+\textbf{Posts} & Visibility & Phạm vi hiển thị: public/family/private & VARCHAR(20) \\ \hline
+\textbf{Posts} & IsPinned & Cờ ghim bài đăng lên đầu & BIT \\ \hline
+\textbf{Posts} & CreatedAt & Thời điểm đăng bài & DATETIME2 \\ \hline
+\textbf{Posts} & UpdatedAt & Thời điểm chỉnh sửa gần nhất & DATETIME2 \\ \hline
+\textbf{Comments} & \textbf{CommentId} & Khóa chính, định danh bình luận & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{Comments} & PostId & Bài đăng được bình luận & UNIQUEIDENTIFIER (FK → Posts) \\ \hline
+\textbf{Comments} & AuthorId & Người dùng viết bình luận & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{Comments} & ParentCommentId & Bình luận cha nếu là bình luận trả lời — phải cùng PostId với bình luận cha (RB-8) & UNIQUEIDENTIFIER (FK → Comments), NULL \\ \hline
+\textbf{Comments} & Content & Nội dung bình luận & NVARCHAR(MAX) \\ \hline
+\textbf{Comments} & CreatedAt & Thời điểm bình luận & DATETIME2 \\ \hline
+\textbf{Reactions} & \textbf{ReactionId} & Khóa chính thay thế của bản ghi cảm xúc & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{Reactions} & UserId & Người dùng thả cảm xúc & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{Reactions} & TargetType & Loại đối tượng được thả cảm xúc: post/comment & VARCHAR(20) \\ \hline
+\textbf{Reactions} & TargetId & Khóa của đối tượng được thả cảm xúc (khóa đa hình, không FK cứng) & UNIQUEIDENTIFIER \\ \hline
+\textbf{Reactions} & ReactionType & Loại cảm xúc: like/love/haha/wow... & VARCHAR(20) \\ \hline
+\textbf{Reactions} & CreatedAt & Thời điểm thả cảm xúc & DATETIME2 \\ \hline
+\textbf{MediaAssets} & \textbf{MediaId} & Khóa chính, định danh tệp media & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{MediaAssets} & OwnerType & Loại đối tượng sở hữu media: post/album/story... & VARCHAR(20) \\ \hline
+\textbf{MediaAssets} & OwnerId & Khóa của đối tượng sở hữu media (khóa đa hình) & UNIQUEIDENTIFIER \\ \hline
+\textbf{MediaAssets} & MediaUrl & Đường dẫn tệp media & VARCHAR(255) \\ \hline
+\textbf{MediaAssets} & MediaType & Loại media: image/video & VARCHAR(20) \\ \hline
+\textbf{MediaAssets} & Caption & Chú thích cho media & NVARCHAR(255) \\ \hline
+\textbf{MediaAssets} & UploadedBy & Người dùng đã tải lên & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{MediaAssets} & UploadedAt & Thời điểm tải lên & DATETIME2 \\ \hline
+\textbf{Events} & \textbf{EventId} & Khóa chính, định danh sự kiện & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{Events} & FamilyId & Dòng họ tổ chức sự kiện (ON DELETE CASCADE) & UNIQUEIDENTIFIER (FK → Families) \\ \hline
+\textbf{Events} & CreatedBy & Người dùng tạo sự kiện & UNIQUEIDENTIFIER (FK → Users), NULL \\ \hline
+\textbf{Events} & Title & Tiêu đề sự kiện & NVARCHAR(200) \\ \hline
+\textbf{Events} & Description & Mô tả chi tiết sự kiện & NVARCHAR(MAX) \\ \hline
+\textbf{Events} & EventType & Loại sự kiện: reunion/wedding/birthday/anniversary... & VARCHAR(20) \\ \hline
+\textbf{Events} & Location & Địa điểm tổ chức & NVARCHAR(255) \\ \hline
+\textbf{Events} & StartTime & Thời điểm bắt đầu — phải trước EndTime nếu có (RB-2) & DATETIME2 \\ \hline
+\textbf{Events} & EndTime & Thời điểm kết thúc (RB-2) & DATETIME2, NULL \\ \hline
+\textbf{Events} & CreatedAt & Thời điểm tạo sự kiện & DATETIME2 \\ \hline
+\textbf{EventParticipants} & \textbf{EventId} & Sự kiện được mời tham gia (ON DELETE CASCADE) & UNIQUEIDENTIFIER (PK, FK → Events) \\ \hline
+\textbf{EventParticipants} & MemberId & Thành viên được mời — phải cùng dòng họ với sự kiện (RB-5); ON DELETE NO ACTION & UNIQUEIDENTIFIER (PK, FK → FamilyMembers) \\ \hline
+\textbf{EventParticipants} & RsvpStatus & Trạng thái phản hồi lời mời: invited/accepted/declined/maybe & VARCHAR(20) CHECK, DEFAULT 'invited' \\ \hline
+\textbf{EventParticipants} & RespondedAt & Thời điểm phản hồi lời mời & DATETIME2, NULL \\ \hline
+\textbf{EventReminders} & \textbf{EventId} & Sự kiện được nhắc (khóa chủ; ON DELETE CASCADE) & UNIQUEIDENTIFIER (PK, FK → Events) \\ \hline
+\textbf{EventReminders} & RemindAt & Thời điểm gửi nhắc nhở (khóa cục bộ của thực thể yếu) & DATETIME2 (PK) \\ \hline
+\textbf{EventReminders} & Channel & Kênh gửi thông báo: push/email/sms & VARCHAR(20), DEFAULT 'push' \\ \hline
+\textbf{EventReminders} & IsSent & Cờ đánh dấu đã gửi hay chưa & BIT \\ \hline
+\textbf{ProfessionalProfiles} & \textbf{ProfileId} & Khóa chính, định danh hồ sơ nghề nghiệp & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{ProfessionalProfiles} & MemberId & Thành viên sở hữu hồ sơ (một thành viên có thể có 0..* hồ sơ) & UNIQUEIDENTIFIER (FK → FamilyMembers) \\ \hline
+\textbf{ProfessionalProfiles} & Occupation & Nghề nghiệp & NVARCHAR(100) \\ \hline
+\textbf{ProfessionalProfiles} & Company & Tên công ty/tổ chức làm việc & NVARCHAR(150) \\ \hline
+\textbf{ProfessionalProfiles} & Industry & Ngành nghề & NVARCHAR(100) \\ \hline
+\textbf{ProfessionalProfiles} & Position & Chức vụ/vị trí công tác & NVARCHAR(100) \\ \hline
+\textbf{ProfessionalProfiles} & YearsExperience & Số năm kinh nghiệm & INT \\ \hline
+\textbf{ProfessionalProfiles} & Location & Nơi làm việc & NVARCHAR(255) \\ \hline
+\textbf{EducationProfiles} & \textbf{EducationId} & Khóa chính, định danh hồ sơ học vấn & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{EducationProfiles} & MemberId & Thành viên sở hữu hồ sơ học vấn & UNIQUEIDENTIFIER (FK → FamilyMembers) \\ \hline
+\textbf{EducationProfiles} & SchoolName & Tên trường học/cơ sở đào tạo & NVARCHAR(150) \\ \hline
+\textbf{EducationProfiles} & Degree & Bằng cấp: cử nhân, thạc sĩ, tiến sĩ... & NVARCHAR(50) \\ \hline
+\textbf{EducationProfiles} & FieldOfStudy & Chuyên ngành đào tạo & NVARCHAR(100) \\ \hline
+\textbf{EducationProfiles} & StartYear & Năm bắt đầu học & INT \\ \hline
+\textbf{EducationProfiles} & EndYear & Năm kết thúc/tốt nghiệp & INT, NULL \\ \hline
+\textbf{HistoricalDocuments} & \textbf{DocumentId} & Khóa chính, định danh tài liệu & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{HistoricalDocuments} & FamilyId & Dòng họ sở hữu tài liệu lịch sử & UNIQUEIDENTIFIER (FK → Families) \\ \hline
+\textbf{HistoricalDocuments} & Title & Tiêu đề tài liệu & NVARCHAR(200) \\ \hline
+\textbf{HistoricalDocuments} & Description & Mô tả nội dung tài liệu & NVARCHAR(MAX) \\ \hline
+\textbf{HistoricalDocuments} & DocType & Loại tài liệu: gia phả giấy/sắc phong/văn tự... & VARCHAR(20) \\ \hline
+\textbf{HistoricalDocuments} & FileUrl & Đường dẫn tệp tài liệu số hóa & VARCHAR(255) \\ \hline
+\textbf{HistoricalDocuments} & UploadedBy & Người dùng tải tài liệu lên & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{HistoricalDocuments} & UploadedAt & Thời điểm tải lên & DATETIME2 \\ \hline
+\textbf{FamilyStories} & \textbf{StoryId} & Khóa chính, định danh câu chuyện & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{FamilyStories} & FamilyId & Dòng họ liên quan tới câu chuyện & UNIQUEIDENTIFIER (FK → Families) \\ \hline
+\textbf{FamilyStories} & RelatedMemberId & Thành viên liên quan đến nội dung câu chuyện & UNIQUEIDENTIFIER (FK → FamilyMembers), NULL \\ \hline
+\textbf{FamilyStories} & AuthorId & Người dùng viết câu chuyện & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{FamilyStories} & Title & Tiêu đề câu chuyện & NVARCHAR(200) \\ \hline
+\textbf{FamilyStories} & Content & Nội dung câu chuyện & NVARCHAR(MAX) \\ \hline
+\textbf{FamilyStories} & CreatedAt & Thời điểm tạo câu chuyện & DATETIME2 \\ \hline
+\textbf{OutstandingMembers} & \textbf{AchievementId} & Khóa chính, định danh thành tích & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{OutstandingMembers} & MemberId & Thành viên đạt thành tích tiêu biểu & UNIQUEIDENTIFIER (FK → FamilyMembers) \\ \hline
+\textbf{OutstandingMembers} & AchievementTitle & Tên thành tích & NVARCHAR(200) \\ \hline
+\textbf{OutstandingMembers} & Description & Mô tả chi tiết thành tích & NVARCHAR(MAX) \\ \hline
+\textbf{OutstandingMembers} & AchievementYear & Năm đạt được thành tích & INT \\ \hline
+\textbf{PhotoAlbums} & \textbf{AlbumId} & Khóa chính, định danh album & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{PhotoAlbums} & FamilyId & Dòng họ sở hữu album ảnh & UNIQUEIDENTIFIER (FK → Families) \\ \hline
+\textbf{PhotoAlbums} & AlbumName & Tên album ảnh & NVARCHAR(150) \\ \hline
+\textbf{PhotoAlbums} & Description & Mô tả album & NVARCHAR(MAX) \\ \hline
+\textbf{PhotoAlbums} & CreatedBy & Người dùng tạo album & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{PhotoAlbums} & CreatedAt & Thời điểm tạo album & DATETIME2 \\ \hline
+\textbf{AiQueryLogs} & \textbf{QueryId} & Khóa chính, định danh lượt truy vấn & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{AiQueryLogs} & UserId & Người dùng thực hiện truy vấn AI & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{AiQueryLogs} & QueryType & Loại truy vấn: tìm kiếm ngữ nghĩa/trợ lý tri thức/giải thích quan hệ họ hàng & VARCHAR(30) \\ \hline
+\textbf{AiQueryLogs} & QueryText & Nội dung câu hỏi/truy vấn của người dùng & NVARCHAR(MAX) \\ \hline
+\textbf{AiQueryLogs} & ResponseText & Nội dung phản hồi do AI sinh ra & NVARCHAR(MAX) \\ \hline
+\textbf{AiQueryLogs} & CreatedAt & Thời điểm thực hiện truy vấn & DATETIME2 \\ \hline
+\textbf{AiEmbeddings} & \textbf{EmbeddingId} & Khóa chính thay thế (UUID) của bản ghi embedding & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{AiEmbeddings} & EntityType & Loại thực thể được vector hóa: post/story/document... & VARCHAR(30) \\ \hline
+\textbf{AiEmbeddings} & EntityId & Khóa của thực thể được vector hóa (khóa đa hình) & UNIQUEIDENTIFIER \\ \hline
+\textbf{AiEmbeddings} & EmbeddingVector & Vector embedding lưu dạng mảng số JSON (SQL Server 2022 chưa có kiểu VECTOR gốc) & NVARCHAR(MAX) \\ \hline
+\textbf{AiEmbeddings} & ModelVersion & Phiên bản mô hình AI đã sinh embedding & VARCHAR(50) \\ \hline
+\textbf{AiEmbeddings} & CreatedAt & Thời điểm sinh embedding & DATETIME2 \\ \hline
+\textbf{AiRecommendations} & \textbf{RecommendationId} & Khóa chính, định danh lượt đề xuất & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{AiRecommendations} & UserId & Người dùng nhận đề xuất & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{AiRecommendations} & TargetType & Loại đối tượng được đề xuất (VD: thành viên, sự kiện, bài đăng) & VARCHAR(30) \\ \hline
+\textbf{AiRecommendations} & TargetId & Khóa của đối tượng được đề xuất (khóa đa hình) & UNIQUEIDENTIFIER \\ \hline
+\textbf{AiRecommendations} & Score & Điểm số mức độ phù hợp của đề xuất & DECIMAL(5,4) \\ \hline
+\textbf{AiRecommendations} & Reason & Lý do/giải thích cho đề xuất & NVARCHAR(255) \\ \hline
+\textbf{AiRecommendations} & CreatedAt & Thời điểm sinh đề xuất & DATETIME2 \\ \hline
+\textbf{Reports} & \textbf{ReportId} & Khóa chính, định danh báo cáo & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{Reports} & FamilyId & Dòng họ liên quan tới báo cáo & UNIQUEIDENTIFIER (FK → Families) \\ \hline
+\textbf{Reports} & ReportType & Loại báo cáo thống kê & VARCHAR(30) \\ \hline
+\textbf{Reports} & Parameters & Tham số truy vấn dùng để sinh báo cáo, lưu dạng JSON hợp lệ & NVARCHAR(MAX) CHECK (ISJSON=1) \\ \hline
+\textbf{Reports} & FileUrl & Đường dẫn tệp báo cáo đã xuất & VARCHAR(255) \\ \hline
+\textbf{Reports} & GeneratedBy & Người dùng đã tạo báo cáo & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{Reports} & GeneratedAt & Thời điểm sinh báo cáo & DATETIME2 \\ \hline
+\textbf{AuditLogs} & \textbf{LogId} & Khóa chính, số tự tăng cho bảng log tần suất ghi cao & BIGINT IDENTITY(1,1) (PK) \\ \hline
+\textbf{AuditLogs} & UserId & Người dùng thực hiện thao tác & UNIQUEIDENTIFIER (FK → Users), NULL \\ \hline
+\textbf{AuditLogs} & Action & Loại thao tác: insert/update/delete... & VARCHAR(30) \\ \hline
+\textbf{AuditLogs} & EntityType & Loại đối tượng bị tác động & VARCHAR(50) \\ \hline
+\textbf{AuditLogs} & EntityId & Khóa của đối tượng bị tác động (khóa đa hình) & UNIQUEIDENTIFIER \\ \hline
+\textbf{AuditLogs} & OldValue & Giá trị trước khi thay đổi, lưu dạng JSON & NVARCHAR(MAX) \\ \hline
+\textbf{AuditLogs} & NewValue & Giá trị sau khi thay đổi, lưu dạng JSON & NVARCHAR(MAX) \\ \hline
+\textbf{AuditLogs} & IpAddress & Địa chỉ IP thực hiện thao tác & VARCHAR(45) \\ \hline
+\textbf{AuditLogs} & CreatedAt & Thời điểm ghi nhật ký & DATETIME2 \\ \hline
+\textbf{SystemConfigurations} & \textbf{ConfigId} & Khóa chính, định danh cấu hình & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{SystemConfigurations} & ConfigKey & Khóa cấu hình, duy nhất trong hệ thống & VARCHAR(100) UNIQUE \\ \hline
+\textbf{SystemConfigurations} & ConfigValue & Giá trị cấu hình tương ứng & NVARCHAR(MAX) \\ \hline
+\textbf{SystemConfigurations} & Description & Mô tả ý nghĩa cấu hình & NVARCHAR(255) \\ \hline
+\textbf{SystemConfigurations} & UpdatedBy & Người dùng cập nhật cấu hình gần nhất & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{SystemConfigurations} & UpdatedAt & Thời điểm cập nhật cấu hình & DATETIME2 \\ \hline
+\textbf{Backups} & \textbf{BackupId} & Khóa chính, định danh lượt sao lưu & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{Backups} & BackupType & Loại sao lưu: full/differential/log & VARCHAR(20) \\ \hline
+\textbf{Backups} & FilePath & Đường dẫn tệp sao lưu & VARCHAR(255) \\ \hline
+\textbf{Backups} & Status & Trạng thái sao lưu: success/failed/in\_progress & VARCHAR(20) \\ \hline
+\textbf{Backups} & CreatedAt & Thời điểm thực hiện sao lưu & DATETIME2 \\ \hline
+\textbf{ModerationLogs} & \textbf{ModerationId} & Khóa chính, định danh lượt kiểm duyệt & UNIQUEIDENTIFIER (PK) \\ \hline
+\textbf{ModerationLogs} & ContentType & Loại nội dung bị kiểm duyệt: post/comment/media... & VARCHAR(20) \\ \hline
+\textbf{ModerationLogs} & ContentId & Khóa của nội dung bị kiểm duyệt (khóa đa hình) & UNIQUEIDENTIFIER \\ \hline
+\textbf{ModerationLogs} & ModeratorId & Người kiểm duyệt thực hiện thao tác & UNIQUEIDENTIFIER (FK → Users) \\ \hline
+\textbf{ModerationLogs} & Action & Hành động kiểm duyệt: hide/delete/warn/approve... & VARCHAR(30) \\ \hline
+\textbf{ModerationLogs} & Reason & Lý do kiểm duyệt & NVARCHAR(255) \\ \hline
+\textbf{ModerationLogs} & CreatedAt & Thời điểm kiểm duyệt & DATETIME2 \\ \hline
+\end{longtable}
