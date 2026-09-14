@@ -1,439 +1,478 @@
-
 \clearpage
 \phantomsection
 \addcontentsline{toc}{chapter}{CHƯƠNG 3: THIẾT KẾ LOGIC — PHỤ THUỘC HÀM VÀ CHUẨN HÓA}
-{\LARGE\bfseries CHƯƠNG 3: THIẾT KẾ LOGIC — PHỤ THUỘC HÀM VÀ CHUẨN HÓA}\par\vspace{1em}
+{\LARGE\bfseries CHƯƠNG 3: THIẾT KẾ LOGIC — PHỤ THUỘC HÀM VÀ CHUẨN HÓA}\par\vspace{1.2em}
 
 Chương này minh chứng việc áp dụng lý thuyết phụ thuộc hàm, bao đóng, tìm khóa và các thuật toán chuẩn hóa (Chương 3) để suy ra đúng lược đồ quan hệ đã dùng cho nhóm Sự kiện của FamilyConnect, sau đó tổng hợp kết quả chuẩn hóa cho toàn bộ hệ thống.
 
+\vspace{1.8em}
 \phantomsection
 \addcontentsline{toc}{section}{3.1. Ví dụ minh chứng: từ bảng phẳng đến lược đồ chuẩn hóa}
-{\Large\bfseries 3.1. Ví dụ minh chứng: từ bảng phẳng đến lược đồ chuẩn hóa}\par\vspace{0.7em}
+{\Large\bfseries 3.1. Ví dụ minh chứng: từ bảng phẳng đến lược đồ chuẩn hóa}\par\vspace{0.8em}
 
 Giả sử ban đầu module Sự kiện được thiết kế bằng một bảng báo cáo phẳng duy nhất (cách làm trực giác nhưng sai, giống ví dụ NV\_DUAN/Star Wars của Chương 3):
 
 \begin{lstlisting}[language=SQL]
-BAO_CAO_SU_KIEN(maSuKien, tieuDe, thoiGianBD, maGiaDinh, tenGiaDinh, maThanhVien, hoTenTV, rsvpStatus)
+	BAO_CAO_SU_KIEN(maSuKien, tieuDe, thoiGianBD, maGiaDinh, tenGiaDinh, maThanhVien, hoTenTV, rsvpStatus)
 \end{lstlisting}
 
+\vspace{1.4em}
 \phantomsection
 \addcontentsline{toc}{subsection}{3.1.1. Xác định phụ thuộc hàm từ quy tắc nghiệp vụ}
-{\large\bfseries 3.1.1. Xác định phụ thuộc hàm từ quy tắc nghiệp vụ}\par\vspace{0.5em}
+{\large\bfseries 3.1.1. Xác định phụ thuộc hàm từ quy tắc nghiệp vụ}\par\vspace{0.6em}
 
 \begin{itemize}
-\item F1: maSuKien → tieuDe, thoiGianBD, maGiaDinh  (mỗi sự kiện có tiêu đề, thời gian và thuộc một dòng họ duy nhất)
-\item F2: maGiaDinh → tenGiaDinh  (mỗi mã dòng họ xác định một tên dòng họ)
-\item F3: maThanhVien → hoTenTV, maGiaDinh  (mỗi thành viên có họ tên và thuộc một dòng họ cố định)
-\item F4: (maSuKien, maThanhVien) → rsvpStatus  (trạng thái RSVP chỉ có nghĩa trong ngữ cảnh một lần mời cụ thể)
+	\item F1: maSuKien $\rightarrow$ tieuDe, thoiGianBD, maGiaDinh (mỗi sự kiện có tiêu đề, thời gian và thuộc một dòng họ duy nhất)
+	\item F2: maGiaDinh $\rightarrow$ tenGiaDinh (mỗi mã dòng họ xác định một tên dòng họ)
+	\item F3: maThanhVien $\rightarrow$ hoTenTV, maGiaDinh (mỗi thành viên có họ tên và thuộc một dòng họ cố định)
+	\item F4: (maSuKien, maThanhVien) $\rightarrow$ rsvpStatus (trạng thái RSVP chỉ có nghĩa trong ngữ cảnh một lần mời cụ thể)
 \end{itemize}
 
 \emph{Lưu ý: F3 là giả định đơn giản hóa chỉ dành riêng cho ví dụ minh họa phân rã ở mục này (mỗi thành viên gắn với đúng một dòng họ khai sinh/gốc). Giả định này khác với ngữ cảnh phân quyền đa dòng họ đã trình bày ở Mục 2.5 và bảng UserRoles(UserId, RoleId, FamilyId), nơi một người dùng có thể giữ vai trò ở nhiều dòng họ khác nhau — hai chỗ mô tả hai khái niệm khác nhau (dòng họ gốc của thành viên vs. dòng họ mà người dùng có quyền truy cập), không mâu thuẫn nhau.}
 
+\vspace{1.4em}
 \phantomsection
-\addcontentsline{toc}{subsection}{3.1.2. Tìm khóa bằng bao đóng }
-{\large\bfseries 3.1.2. Tìm khóa bằng bao đóng }\par\vspace{0.5em}
+\addcontentsline{toc}{subsection}{3.1.2. Tìm khóa bằng bao đóng}
+{\large\bfseries 3.1.2. Tìm khóa bằng bao đóng}\par\vspace{0.6em}
 
 Thuộc tính rsvpStatus chỉ xuất hiện ở vế phải của F4, và không FD nào khác xác định được nó ngoài (maSuKien, maThanhVien) — do đó mọi khóa phải chứa cặp này. Kiểm tra bao đóng:
 
 \begin{lstlisting}[language=SQL]
-{maSuKien, maThanhVien}+ :
-  Bước 0: X+ = {maSuKien, maThanhVien}
-  Áp dụng F1 (maSuKien ⊆ X+): X+ = {maSuKien, maThanhVien, tieuDe, thoiGianBD, maGiaDinh}
-  Áp dụng F3 (maThanhVien ⊆ X+): X+ = X+ ∪ {hoTenTV}  (maGiaDinh đã có)
-  Áp dụng F2 (maGiaDinh ⊆ X+): X+ = X+ ∪ {tenGiaDinh}
-  Áp dụng F4: X+ = X+ ∪ {rsvpStatus}
-  => X+ = U (toàn bộ thuộc tính)
+	{maSuKien, maThanhVien}+ :
+	Buoc 0: X+ = {maSuKien, maThanhVien}
+	Ap dung F1 (maSuKien <= X+): X+ = {maSuKien, maThanhVien, tieuDe, thoiGianBD, maGiaDinh}
+	Ap dung F3 (maThanhVien <= X+): X+ = X+ U {hoTenTV} (maGiaDinh da co)
+	Ap dung F2 (maGiaDinh <= X+): X+ = X+ U {tenGiaDinh}
+	Ap dung F4: X+ = X+ U {rsvpStatus}
+	=> X+ = U (toan bo thuoc tinh)
 \end{lstlisting}
 
-Vậy K = (maSuKien, maThanhVien) là siêu khóa. Vì maSuKien+ ≠ U và maThanhVien+ ≠ U (mỗi vế chỉ suy ra được một phần), K là khóa ứng viên tối thiểu duy nhất của BAO\_CAO\_SU\_KIEN.
+Vậy K = (maSuKien, maThanhVien) là siêu khóa. Vì maSuKien+ $\neq$ U và maThanhVien+ $\neq$ U (mỗi vế chỉ suy ra được một phần), K là khóa ứng viên tối thiểu duy nhất của BAO\_CAO\_SU\_KIEN.
 
+\vspace{1.4em}
 \phantomsection
 \addcontentsline{toc}{subsection}{3.1.3. Bất thường dữ liệu (data anomalies)}
-{\large\bfseries 3.1.3. Bất thường dữ liệu (data anomalies)}\par\vspace{0.5em}
+{\large\bfseries 3.1.3. Bất thường dữ liệu (data anomalies)}\par\vspace{0.6em}
 
-\begin{longtable}{|p{0.45\textwidth}|p{0.45\textwidth}|}
-\hline
-\textbf{Loại bất thường} & \textbf{Biểu hiện trên BAO\_CAO\_SU\_KIEN} \\ \hline
-\endfirsthead
-\hline
-\textbf{Loại bất thường} & \textbf{Biểu hiện trên BAO\_CAO\_SU\_KIEN} \\ \hline
-\endhead
-Thêm (Insertion) & Không thể lưu một sự kiện mới nếu chưa có ít nhất một thành viên được mời, vì khóa chính bắt buộc có maThanhVien. \\ \hline
-Sửa (Update) & Đổi tieuDe của một sự kiện có 50 người tham gia phải sửa 50 dòng, dễ gây mâu thuẫn dữ liệu nếu sửa sót. \\ \hline
-Xóa (Deletion) & Xóa người tham gia cuối cùng của một sự kiện sẽ xóa luôn thông tin tieuDe, thoiGianBD, maGiaDinh của sự kiện đó. \\ \hline
+\begingroup
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{5pt}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.25\textwidth}|>{\raggedright\arraybackslash}p{0.68\textwidth}|}
+	\hline
+	\textbf{Loại bất thường} & \textbf{Biểu hiện trên BAO\_CAO\_SU\_KIEN} \\ \hline
+	\endfirsthead
+	\hline
+	\textbf{Loại bất thường} & \textbf{Biểu hiện trên BAO\_CAO\_SU\_KIEN} \\ \hline
+	\endhead
+	Thêm (Insertion) & Không thể lưu một sự kiện mới nếu chưa có ít nhất một thành viên được mời, vì khóa chính bắt buộc có maThanhVien. \\ \hline
+	Sửa (Update) & Đổi tieuDe của một sự kiện có 50 người tham gia phải sửa 50 dòng, dễ gây mâu thuẫn dữ liệu nếu sửa sót. \\ \hline
+	Xóa (Deletion) & Xóa người tham gia cuối cùng của một sự kiện sẽ xóa luôn thông tin tieuDe, thoiGianBD, maGiaDinh của sự kiện đó. \\ \hline
 \end{longtable}
+\endgroup
 
-
+\vspace{1.4em}
 \phantomsection
-\addcontentsline{toc}{subsection}{3.1.4. Kiểm tra dạng chuẩn và phân rã (2NF → 3NF → BCNF)}
-{\large\bfseries 3.1.4. Kiểm tra dạng chuẩn và phân rã (2NF → 3NF → BCNF)}\par\vspace{0.5em}
+\addcontentsline{toc}{subsection}{3.1.4. Kiểm tra dạng chuẩn và phân rã (2NF $\rightarrow$ 3NF $\rightarrow$ BCNF)}
+{\large\bfseries 3.1.4. Kiểm tra dạng chuẩn và phân rã (2NF $\rightarrow$ 3NF $\rightarrow$ BCNF)}\par\vspace{0.6em}
 
 Với khóa K = (maSuKien, maThanhVien):
 
 \begin{itemize}
-\item Vi phạm 2NF: tieuDe, thoiGianBD, maGiaDinh, tenGiaDinh chỉ phụ thuộc vào phần maSuKien của khóa (phụ thuộc từng phần); hoTenTV chỉ phụ thuộc vào phần maThanhVien.
-\item Áp dụng quy tắc tách 2NF (Chương 3, mục 'Phân rã để đạt 2NF'): tách các thuộc tính phụ thuộc từng phần ra khỏi bảng gốc theo từng phần khóa mà chúng phụ thuộc.
+	\item Vi phạm 2NF: tieuDe, thoiGianBD, maGiaDinh, tenGiaDinh chỉ phụ thuộc vào phần maSuKien của khóa (phụ thuộc từng phần); hoTenTV chỉ phụ thuộc vào phần maThanhVien.
+	\item Áp dụng quy tắc tách 2NF (Chương 3, mục 'Phân rã để đạt 2NF'): tách các thuộc tính phụ thuộc từng phần ra khỏi bảng gốc theo từng phần khóa mà chúng phụ thuộc.
 \end{itemize}
 
 \begin{lstlisting}[language=SQL]
-Sau khi tách 2NF:
-  SU_KIEN_TMP(maSuKien, tieuDe, thoiGianBD, maGiaDinh, tenGiaDinh)
-  THANH_VIEN_TMP(maThanhVien, hoTenTV, maGiaDinh)
-  THAM_GIA(maSuKien, maThanhVien, rsvpStatus)
+	Sau khi tach 2NF:
+	SU_KIEN_TMP(maSuKien, tieuDe, thoiGianBD, maGiaDinh, tenGiaDinh)
+	THANH_VIEN_TMP(maThanhVien, hoTenTV, maGiaDinh)
+	THAM_GIA(maSuKien, maThanhVien, rsvpStatus)
 \end{lstlisting}
 
-Trong SU\_KIEN\_TMP vẫn còn phụ thuộc bắc cầu: maSuKien → maGiaDinh → tenGiaDinh, với maGiaDinh không phải là siêu khóa của SU\_KIEN\_TMP ⇒ vi phạm 3NF. Áp dụng tiếp quy tắc tách 3NF (loại phụ thuộc bắc cầu):
+Trong SU\_KIEN\_TMP vẫn còn phụ thuộc bắc cầu: maSuKien $\rightarrow$ maGiaDinh $\rightarrow$ tenGiaDinh, với maGiaDinh không phải là siêu khóa của SU\_KIEN\_TMP $\Rightarrow$ vi phạm 3NF. Áp dụng tiếp quy tắc tách 3NF (loại phụ thuộc bắc cầu):
 
 \begin{lstlisting}[language=SQL]
-Sau khi tách 3NF:
-  GIA_DINH(maGiaDinh, tenGiaDinh)
-  SU_KIEN(maSuKien, tieuDe, thoiGianBD, maGiaDinh FK)
-  THANH_VIEN(maThanhVien, hoTenTV, maGiaDinh FK)
-  THAM_GIA(maSuKien FK, maThanhVien FK, rsvpStatus)
+	Sau khi tach 3NF:
+	GIA_DINH(maGiaDinh, tenGiaDinh)
+	SU_KIEN(maSuKien, tieuDe, thoiGianBD, maGiaDinh FK)
+	THANH_VIEN(maThanhVien, hoTenTV, maGiaDinh FK)
+	THAM_GIA(maSuKien FK, maThanhVien FK, rsvpStatus)
 \end{lstlisting}
 
 Bốn lược đồ trên chính là các bảng FAMILIES, EVENTS, FAMILY\_MEMBERS và EVENT\_PARTICIPANTS đã dùng trong thiết kế thực tế (Chương 2), xác nhận thiết kế trực giác ban đầu là đúng theo lý thuyết chuẩn hóa hình thức.
 
+\vspace{1.4em}
 \phantomsection
 \addcontentsline{toc}{subsection}{3.1.5. Kiểm tra BCNF}
-{\large\bfseries 3.1.5. Kiểm tra BCNF}\par\vspace{0.5em}
+{\large\bfseries 3.1.5. Kiểm tra BCNF}\par\vspace{0.6em}
 
-\begin{longtable}{|p{0.3\textwidth}|p{0.3\textwidth}|p{0.3\textwidth}|}
-\hline
-\textbf{Quan hệ} & \textbf{FD không tầm thường} & \textbf{X có là siêu khóa? → BCNF?} \\ \hline
-\endfirsthead
-\hline
-\textbf{Quan hệ} & \textbf{FD không tầm thường} & \textbf{X có là siêu khóa? → BCNF?} \\ \hline
-\endhead
-GIA\_DINH & maGiaDinh → tenGiaDinh & Có (maGiaDinh là khóa) → Đạt BCNF \\ \hline
-SU\_KIEN & maSuKien → \{tieuDe, thoiGianBD, maGiaDinh\} & Có (maSuKien là khóa) → Đạt BCNF \\ \hline
-THANH\_VIEN & maThanhVien → \{hoTenTV, maGiaDinh\} & Có (maThanhVien là khóa) → Đạt BCNF \\ \hline
-THAM\_GIA & (maSuKien, maThanhVien) → rsvpStatus & Vế trái là khóa (khóa ghép) → Đạt BCNF \\ \hline
+\begingroup
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{5pt}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.22\textwidth}|>{\raggedright\arraybackslash}p{0.38\textwidth}|>{\raggedright\arraybackslash}p{0.32\textwidth}|}
+	\hline
+	\textbf{Quan hệ} & \textbf{FD không tầm thường} & \textbf{X có là siêu khóa? $\rightarrow$ BCNF?} \\ \hline
+	\endfirsthead
+	\hline
+	\textbf{Quan hệ} & \textbf{FD không tầm thường} & \textbf{X có là siêu khóa? $\rightarrow$ BCNF?} \\ \hline
+	\endhead
+	GIA\_DINH & maGiaDinh $\rightarrow$ tenGiaDinh & Có (maGiaDinh là khóa) $\rightarrow$ Đạt BCNF \\ \hline
+	SU\_KIEN & maSuKien $\rightarrow$ \{tieuDe, thoiGianBD, maGiaDinh\} & Có (maSuKien là khóa) $\rightarrow$ Đạt BCNF \\ \hline
+	THANH\_VIEN & maThanhVien $\rightarrow$ \{hoTenTV, maGiaDinh\} & Có (maThanhVien là khóa) $\rightarrow$ Đạt BCNF \\ \hline
+	THAM\_GIA & (maSuKien, maThanhVien) $\rightarrow$ rsvpStatus & Vế trái là khóa (khóa ghép) $\rightarrow$ Đạt BCNF \\ \hline
 \end{longtable}
+\endgroup
 
-
+\vspace{1.4em}
 \phantomsection
 \addcontentsline{toc}{subsection}{3.1.6. Kiểm tra bảo toàn kết nối (lossless-join)}
-{\large\bfseries 3.1.6. Kiểm tra bảo toàn kết nối (lossless-join)}\par\vspace{0.5em}
+{\large\bfseries 3.1.6. Kiểm tra bảo toàn kết nối (lossless-join)}\par\vspace{0.6em}
 
 Áp dụng tiêu chí giao hai lược đồ phải là khóa của ít nhất một bên (Chương 3, mục 'Bảo toàn kết nối nhìn bằng phép kết'):
 
 \begin{itemize}
-\item SU\_KIEN ∩ GIA\_DINH = \{maGiaDinh\}, là khóa của GIA\_DINH ⇒ bảo toàn kết nối.
-\item THANH\_VIEN ∩ GIA\_DINH = \{maGiaDinh\}, là khóa của GIA\_DINH ⇒ bảo toàn kết nối.
-\item THAM\_GIA ∩ SU\_KIEN = \{maSuKien\}, là khóa của SU\_KIEN ⇒ bảo toàn kết nối.
-\item THAM\_GIA ∩ THANH\_VIEN = \{maThanhVien\}, là khóa của THANH\_VIEN ⇒ bảo toàn kết nối.
+	\item SU\_KIEN $\cap$ GIA\_DINH = \{maGiaDinh\}, là khóa của GIA\_DINH $\Rightarrow$ bảo toàn kết nối.
+	\item THANH\_VIEN $\cap$ GIA\_DINH = \{maGiaDinh\}, là khóa của GIA\_DINH $\Rightarrow$ bảo toàn kết nối.
+	\item THAM\_GIA $\cap$ SU\_KIEN = \{maSuKien\}, là khóa của SU\_KIEN $\Rightarrow$ bảo toàn kết nối.
+	\item THAM\_GIA $\cap$ THANH\_VIEN = \{maThanhVien\}, là khóa của THANH\_VIEN $\Rightarrow$ bảo toàn kết nối.
 \end{itemize}
 
 Phép phân rã cũng bảo toàn phụ thuộc: cả bốn FD gốc (F1–F4) đều được kiểm tra được cục bộ trong từng bảng con, không cần phép kết để xác nhận ràng buộc — đạt cả hai tiêu chí mong muốn của một phép phân rã tốt.
 
+\vspace{1.8em}
 \phantomsection
 \addcontentsline{toc}{section}{3.2. Tổng hợp phân tích chuẩn hóa cho toàn bộ hệ thống}
-{\Large\bfseries 3.2. Tổng hợp phân tích chuẩn hóa cho toàn bộ hệ thống}\par\vspace{0.7em}
+{\Large\bfseries 3.2. Tổng hợp phân tích chuẩn hóa cho toàn bộ hệ thống}\par\vspace{0.8em}
 
-Áp dụng cùng quy trình (xác định FD từ quy tắc nghiệp vụ → tìm khóa bằng bao đóng → kiểm tra 2NF/3NF/BCNF) cho các nhóm chức năng còn lại, kết quả tổng hợp như sau. Với các bảng có khóa chính là khóa thay thế (UUID) đã đảm bảo mọi thuộc tính không khóa đều phụ thuộc đầy đủ và không bắc cầu vào khóa (khóa thay thế 1 cột), các bảng trung gian (n-n) có khóa ghép trùng đúng với vế trái của FD định nghĩa chúng.
+Áp dụng cùng quy trình (xác định phụ thuộc hàm từ quy tắc nghiệp vụ $\rightarrow$ tìm khóa bằng bao đóng $\rightarrow$ kiểm tra dạng chuẩn 2NF/3NF/BCNF) cho các nhóm chức năng còn lại, kết quả tổng hợp được trình bày trong bảng bên dưới.
 
-\begin{longtable}{|p{0.18\textwidth}|p{0.18\textwidth}|p{0.18\textwidth}|p{0.18\textwidth}|p{0.18\textwidth}|}
-\hline
-\textbf{Quan }\textbf{hệ} & \textbf{Lược đồ quan hệ (mô hình quan hệ đầy đủ)} & \textbf{Phụ thuộc hàm đầy đủ} & \textbf{Khóa chính} & \textbf{Dạng chuẩn} \\ \hline
-\endfirsthead
-\hline
-\textbf{Quan }\textbf{hệ} & \textbf{Lược đồ quan hệ (mô hình quan hệ đầy đủ)} & \textbf{Phụ thuộc hàm đầy đủ} & \textbf{Khóa chính} & \textbf{Dạng chuẩn} \\ \hline
-\endhead
-Users & Users(\textbf{UserId}, Username, Email, Phone, PasswordHash, FullName, AvatarUrl, Status, LastLoginAt, CreatedAt, UpdatedAt) & UserId → Username, Email, Phone, PasswordHash, FullName, AvatarUrl, Status, LastLoginAt, CreatedAt, UpdatedAt & UserId & BCNF \\ \hline
-UserProfiles & UserProfiles(\textbf{UserId}, DateOfBirth, Gender, Address, Bio, UpdatedAt) & UserId → DateOfBirth, Gender, Address, Bio, UpdatedAt & UserId (PK/FK) & BCNF (thực thể yếu 1:1) \\ \hline
-Roles & Roles(\textbf{RoleId}, RoleName, Description) & RoleId → RoleName, Description & RoleId & BCNF \\ \hline
-Permissions & Permissions(\textbf{PermissionId}, PermissionCode, Description) & PermissionId → PermissionCode, Description & PermissionId & BCNF \\ \hline
-RolePermissions & RolePermissions(\textbf{RoleId}, \textbf{PermissionId}) & (RoleId,PermissionId) → ∅ (khóa ghép, không có thuộc tính mô tả ngoài khóa) & (RoleId, PermissionId) & BCNF \\ \hline
-Families & Families(\textbf{FamilyId}, FamilyName, Origin, Description, CoverImageUrl, CreatedBy (FK), CreatedAt) & FamilyId → FamilyName, Origin, Description, CoverImageUrl, CreatedBy, CreatedAt & FamilyId & BCNF \\ \hline
-UserRoles & UserRoles(\textbf{UserId}, \textbf{RoleId}, \textbf{FamilyId}) & (UserId,RoleId,FamilyId) → ∅ (khóa ghép, không có thuộc tính mô tả ngoài khóa) & (UserId, RoleId, FamilyId) & BCNF \\ \hline
-Branches & Branches(\textbf{BranchId}, FamilyId (FK), ParentBranchId (FK), BranchName, Description) & BranchId → FamilyId, ParentBranchId, BranchName, Description & BranchId & BCNF \\ \hline
-FamilyMembers & FamilyMembers(\textbf{MemberId}, FamilyId (FK), BranchId (FK), UserId (FK), FullName, Gender, DateOfBirth, DateOfDeath, IsAlive, BirthPlace, GenerationLevel, Biography, AvatarUrl, CreatedAt) & MemberId → FamilyId, BranchId, UserId, FullName, Gender, DateOfBirth, DateOfDeath, IsAlive, BirthPlace, GenerationLevel, Biography, AvatarUrl, CreatedAt & MemberId & BCNF \\ \hline
-ParentChildRelationships & ParentChildRelationships(\textbf{RelationshipId}, ParentMemberId (FK), ChildMemberId (FK), RelationshipType) & RelationshipId → ParentMemberId, ChildMemberId, RelationshipType; UNIQUE trên tập FK xác định tính duy nhất nghiệp vụ (không sinh FD mới ngoài khóa) & RelationshipId (thay thế); UNIQUE(ParentMemberId,ChildMemberId) & BCNF \\ \hline
-Marriages & Marriages(\textbf{MarriageId}, Spouse1Id (FK), Spouse2Id (FK), MarriageDate, DivorceDate, Status) & MarriageId → Spouse1Id, Spouse2Id, MarriageDate, DivorceDate, Status & MarriageId & BCNF \\ \hline
-MemberVerifications & MemberVerifications(\textbf{VerificationId}, MemberId (FK), RequestedBy (FK), Status, EvidenceUrl, VerifiedBy (FK), VerifiedAt, CreatedAt) & VerificationId → MemberId, RequestedBy, Status, EvidenceUrl, VerifiedBy, VerifiedAt, CreatedAt & VerificationId & BCNF (thực thể mạnh, phụ thuộc tồn tại) \\ \hline
-Posts & Posts(\textbf{PostId}, FamilyId (FK), AuthorId (FK), PostType, Content, Visibility, IsPinned, CreatedAt, UpdatedAt) & PostId → FamilyId, AuthorId, PostType, Content, Visibility, IsPinned, CreatedAt, UpdatedAt & PostId & BCNF \\ \hline
-Comments & Comments(\textbf{CommentId}, PostId (FK), AuthorId (FK), ParentCommentId (FK), Content, CreatedAt) & CommentId → PostId, AuthorId, ParentCommentId, Content, CreatedAt & CommentId & BCNF \\ \hline
-Reactions & Reactions(\textbf{ReactionId}, UserId (FK), TargetType, TargetId, ReactionType, CreatedAt) & ReactionId → UserId, TargetType, TargetId, ReactionType, CreatedAt; UNIQUE trên tập FK xác định tính duy nhất nghiệp vụ (không sinh FD mới ngoài khóa) & ReactionId (thay thế); UNIQUE(UserId,TargetType,TargetId) & BCNF \\ \hline
-MediaAssets & MediaAssets(\textbf{MediaId}, OwnerType, OwnerId, MediaUrl, MediaType, Caption, UploadedBy (FK), UploadedAt) & MediaId → OwnerType, OwnerId, MediaUrl, MediaType, Caption, UploadedBy, UploadedAt & MediaId & BCNF \\ \hline
-Events & Events(\textbf{EventId}, FamilyId (FK), CreatedBy (FK), Title, Description, EventType, Location, StartTime, EndTime, CreatedAt) & EventId → FamilyId, CreatedBy, Title, Description, EventType, Location, StartTime, EndTime, CreatedAt & EventId & BCNF \\ \hline
-EventParticipants & EventParticipants(\textbf{EventId}, \textbf{MemberId}, RsvpStatus, RespondedAt) & (EventId,MemberId) → RsvpStatus, RespondedAt & (EventId, MemberId) & BCNF \\ \hline
-EventReminders & EventReminders(\textbf{EventId}, \textbf{RemindAt}, Channel, IsSent) & (EventId,RemindAt) → Channel, IsSent & (EventId, RemindAt) & BCNF (thực thể yếu) \\ \hline
-ProfessionalProfiles & ProfessionalProfiles(\textbf{ProfileId}, MemberId (FK), Occupation, Company, Industry, Position, YearsExperience, Location) & ProfileId → MemberId, Occupation, Company, Industry, Position, YearsExperience, Location & ProfileId; MemberId không UNIQUE (0..* hồ sơ) & BCNF \\ \hline
-EducationProfiles & EducationProfiles(\textbf{EducationId}, MemberId (FK), SchoolName, Degree, FieldOfStudy, StartYear, EndYear) & EducationId → MemberId, SchoolName, Degree, FieldOfStudy, StartYear, EndYear & EducationId & BCNF \\ \hline
-HistoricalDocuments & HistoricalDocuments(\textbf{DocumentId}, FamilyId (FK), Title, Description, DocType, FileUrl, UploadedBy (FK), UploadedAt) & DocumentId → FamilyId, Title, Description, DocType, FileUrl, UploadedBy, UploadedAt & DocumentId & BCNF \\ \hline
-FamilyStories & FamilyStories(\textbf{StoryId}, FamilyId (FK), RelatedMemberId (FK), AuthorId (FK), Title, Content, CreatedAt) & StoryId → FamilyId, RelatedMemberId, AuthorId, Title, Content, CreatedAt & StoryId & BCNF \\ \hline
-OutstandingMembers & OutstandingMembers(\textbf{AchievementId}, MemberId (FK), AchievementTitle, Description, AchievementYear) & AchievementId → MemberId, AchievementTitle, Description, AchievementYear & AchievementId & BCNF \\ \hline
-PhotoAlbums & PhotoAlbums(\textbf{AlbumId}, FamilyId (FK), AlbumName, Description, CreatedBy (FK), CreatedAt) & AlbumId → FamilyId, AlbumName, Description, CreatedBy, CreatedAt & AlbumId & BCNF \\ \hline
-AiQueryLogs & AiQueryLogs(\textbf{QueryId}, UserId (FK), QueryType, QueryText, ResponseText, CreatedAt) & QueryId → UserId, QueryType, QueryText, ResponseText, CreatedAt & QueryId & BCNF \\ \hline
-AiEmbeddings & AiEmbeddings(\textbf{EmbeddingId}, EntityType, EntityId, EmbeddingVector, ModelVersion, CreatedAt) & EmbeddingId → EntityType, EntityId, EmbeddingVector, ModelVersion, CreatedAt; (EntityType, EntityId) → EmbeddingVector, ModelVersion, CreatedAt (khóa ứng viên phụ) & EmbeddingId (thay thế); UNIQUE(EntityType,EntityId) & BCNF \\ \hline
-AiRecommendations & AiRecommendations(\textbf{RecommendationId}, UserId (FK), TargetType, TargetId, Score, Reason, CreatedAt) & RecommendationId → UserId, TargetType, TargetId, Score, Reason, CreatedAt & RecommendationId & BCNF \\ \hline
-Reports & Reports(\textbf{ReportId}, FamilyId (FK), ReportType, Parameters, FileUrl, GeneratedBy (FK), GeneratedAt) & ReportId → FamilyId, ReportType, Parameters, FileUrl, GeneratedBy, GeneratedAt & ReportId & BCNF \\ \hline
-AuditLogs & AuditLogs(\textbf{LogId}, UserId (FK), Action, EntityType, EntityId, OldValue, NewValue, IpAddress, CreatedAt) & LogId → UserId, Action, EntityType, EntityId, OldValue, NewValue, IpAddress, CreatedAt & LogId & BCNF \\ \hline
-SystemConfigurations & SystemConfigurations(\textbf{ConfigId}, ConfigKey, ConfigValue, Description, UpdatedBy (FK), UpdatedAt) & ConfigId → ConfigKey, ConfigValue, Description, UpdatedBy, UpdatedAt & ConfigId; UNIQUE(ConfigKey) & BCNF \\ \hline
-Backups & Backups(\textbf{BackupId}, BackupType, FilePath, Status, CreatedAt) & BackupId → BackupType, FilePath, Status, CreatedAt & BackupId & BCNF \\ \hline
-ModerationLogs & ModerationLogs(\textbf{ModerationId}, ContentType, ContentId, ModeratorId (FK), Action, Reason, CreatedAt) & ModerationId → ContentType, ContentId, ModeratorId, Action, Reason, CreatedAt & ModerationId & BCNF \\ \hline
+Đối với các bảng sử dụng khóa chính là khóa thay thế (UUID), tất cả thuộc tính không khóa đều phụ thuộc đầy đủ và không bắc cầu vào khóa chính. Các bảng trung gian ($n-n$) có khóa ghép trùng khớp hoàn toàn với vế trái của phụ thuộc hàm định nghĩa chúng.
+
+\vspace{0.8em}
+\begingroup
+\footnotesize
+\renewcommand{\arraystretch}{1.3}
+\setlength{\tabcolsep}{2.5pt}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.14\textwidth}
+		|>{\raggedright\arraybackslash}p{0.31\textwidth}
+		|>{\raggedright\arraybackslash}p{0.30\textwidth}
+		|>{\raggedright\arraybackslash}p{0.13\textwidth}
+		|>{\centering\arraybackslash}p{0.07\textwidth}|}
+	\hline
+	\textbf{Quan hệ} & \textbf{Lược đồ quan hệ (Mô hình đầy đủ)} & \textbf{Phụ thuộc hàm đầy đủ (FD)} & \textbf{Khóa chính} & \textbf{Dạng chuẩn} \\ \hline
+	\endfirsthead
+	\hline
+	\textbf{Quan hệ} & \textbf{Lược đồ quan hệ (Mô hình đầy đủ)} & \textbf{Phụ thuộc hàm đầy đủ (FD)} & \textbf{Khóa chính} & \textbf{Dạng chuẩn} \\ \hline
+	\endhead
+	
+	Users & Users(\textbf{UserId}, Username, Email, Phone, PasswordHash, FullName, AvatarUrl, Status, LastLoginAt, CreatedAt, UpdatedAt) & UserId $\rightarrow$ Username, Email, Phone, PasswordHash, FullName, AvatarUrl, Status, LastLoginAt, CreatedAt, UpdatedAt & UserId & BCNF \\ \hline
+	
+	UserProfiles & UserProfiles(\textbf{UserId}, DateOfBirth, Gender, Address, Bio, UpdatedAt) & UserId $\rightarrow$ DateOfBirth, Gender, Address, Bio, UpdatedAt & UserId (PK/FK) & BCNF \\ \hline
+	
+	Roles & Roles(\textbf{RoleId}, RoleName, Description) & RoleId $\rightarrow$ RoleName, Description & RoleId & BCNF \\ \hline
+	
+	Permissions & Permissions(\textbf{PermissionId}, PermissionCode, Description) & PermissionId $\rightarrow$ PermissionCode, Description & PermissionId & BCNF \\ \hline
+	
+	RolePermissions & RolePermissions(\textbf{RoleId}, \textbf{PermissionId}) & (RoleId, PermissionId) $\rightarrow \emptyset$ & (RoleId, PermissionId) & BCNF \\ \hline
+	
+	Families & Families(\textbf{FamilyId}, FamilyName, Origin, Description, CoverImageUrl, CreatedBy, CreatedAt) & FamilyId $\rightarrow$ FamilyName, Origin, Description, CoverImageUrl, CreatedBy, CreatedAt & FamilyId & BCNF \\ \hline
+	
+	UserRoles & UserRoles(\textbf{UserId}, \textbf{RoleId}, \textbf{FamilyId}) & (UserId, RoleId, FamilyId) $\rightarrow \emptyset$ & (UserId, RoleId, FamilyId) & BCNF \\ \hline
+	
+	Branches & Branches(\textbf{BranchId}, FamilyId, ParentBranchId, BranchName, Description) & BranchId $\rightarrow$ FamilyId, ParentBranchId, BranchName, Description & BranchId & BCNF \\ \hline
+	
+	Family\allowbreak Members & FamilyMembers(\textbf{MemberId}, FamilyId, BranchId, UserId, FullName, Gender, DateOfBirth, DateOfDeath, IsAlive, BirthPlace, GenerationLevel, Biography, AvatarUrl, CreatedAt) & MemberId $\rightarrow$ FamilyId, BranchId, UserId, FullName, Gender, DateOfBirth, DateOfDeath, IsAlive, BirthPlace, GenerationLevel, Biography, AvatarUrl, CreatedAt & MemberId & BCNF \\ \hline
+	
+	ParentChild\allowbreak Relationships & ParentChild\allowbreak Relationships(\textbf{Relation\allowbreak shipId}, ParentMemberId, ChildMemberId, RelationshipType) & RelationshipId $\rightarrow$ ParentMemberId, ChildMemberId, RelationshipType; UNIQUE(Parent\allowbreak MemberId, ChildMemberId) & Relation\allowbreak shipId & BCNF \\ \hline
+	
+	Marriages & Marriages(\textbf{MarriageId}, Spouse1Id, Spouse2Id, MarriageDate, DivorceDate, Status) & MarriageId $\rightarrow$ Spouse1Id, Spouse2Id, MarriageDate, DivorceDate, Status & MarriageId & BCNF \\ \hline
+	
+	Member\allowbreak Verifications & Member\allowbreak Verifications(\textbf{Verifi\allowbreak cationId}, MemberId, RequestedBy, Status, EvidenceUrl, VerifiedBy, VerifiedAt, CreatedAt) & VerificationId $\rightarrow$ MemberId, RequestedBy, Status, EvidenceUrl, VerifiedBy, VerifiedAt, CreatedAt & Verifi\allowbreak cationId & BCNF \\ \hline
+	
+	Posts & Posts(\textbf{PostId}, FamilyId, AuthorId, PostType, Content, Visibility, IsPinned, CreatedAt, UpdatedAt) & PostId $\rightarrow$ FamilyId, AuthorId, PostType, Content, Visibility, IsPinned, CreatedAt, UpdatedAt & PostId & BCNF \\ \hline
+	
+	Comments & Comments(\textbf{CommentId}, PostId, AuthorId, ParentCommentId, Content, CreatedAt) & CommentId $\rightarrow$ PostId, AuthorId, ParentCommentId, Content, CreatedAt & CommentId & BCNF \\ \hline
+	
+	Reactions & Reactions(\textbf{ReactionId}, UserId, TargetType, TargetId, ReactionType, CreatedAt) & ReactionId $\rightarrow$ UserId, TargetType, TargetId, ReactionType, CreatedAt; UNIQUE(UserId, TargetType, TargetId) & ReactionId & BCNF \\ \hline
+	
+	MediaAssets & MediaAssets(\textbf{MediaId}, OwnerType, OwnerId, MediaUrl, MediaType, Caption, UploadedBy, UploadedAt) & MediaId $\rightarrow$ OwnerType, OwnerId, MediaUrl, MediaType, Caption, UploadedBy, UploadedAt & MediaId & BCNF \\ \hline
+	
+	Events & Events(\textbf{EventId}, FamilyId, CreatedBy, Title, Description, EventType, Location, StartTime, EndTime, CreatedAt) & EventId $\rightarrow$ FamilyId, CreatedBy, Title, Description, EventType, Location, StartTime, EndTime, CreatedAt & EventId & BCNF \\ \hline
+	
+	Event\allowbreak Participants & EventParticipants(\textbf{EventId}, \textbf{MemberId}, RsvpStatus, RespondedAt) & (EventId, MemberId) $\rightarrow$ RsvpStatus, RespondedAt & (EventId, MemberId) & BCNF \\ \hline
+	
+	EventReminders & EventReminders(\textbf{EventId}, \textbf{RemindAt}, Channel, IsSent) & (EventId, RemindAt) $\rightarrow$ Channel, IsSent & (EventId, RemindAt) & BCNF \\ \hline
+	
+	Professional\allowbreak Profiles & ProfessionalProfiles(\textbf{ProfileId}, MemberId, Occupation, Company, Industry, Position, YearsExperience, Location) & ProfileId $\rightarrow$ MemberId, Occupation, Company, Industry, Position, YearsExperience, Location & ProfileId & BCNF \\ \hline
+	
+	Education\allowbreak Profiles & EducationProfiles(\textbf{EducationId}, MemberId, SchoolName, Degree, FieldOfStudy, StartYear, EndYear) & EducationId $\rightarrow$ MemberId, SchoolName, Degree, FieldOfStudy, StartYear, EndYear & EducationId & BCNF \\ \hline
+	
+	Historical\allowbreak Documents & HistoricalDocuments(\textbf{DocumentId}, FamilyId, Title, Description, DocType, FileUrl, UploadedBy, UploadedAt) & DocumentId $\rightarrow$ FamilyId, Title, Description, DocType, FileUrl, UploadedBy, UploadedAt & DocumentId & BCNF \\ \hline
+	
+	FamilyStories & FamilyStories(\textbf{StoryId}, FamilyId, RelatedMemberId, AuthorId, Title, Content, CreatedAt) & StoryId $\rightarrow$ FamilyId, RelatedMemberId, AuthorId, Title, Content, CreatedAt & StoryId & BCNF \\ \hline
+	
+	Outstanding\allowbreak Members & Outstanding\allowbreak Members(\textbf{Achieve\allowbreak mentId}, MemberId, AchievementTitle, Description, AchievementYear) & AchievementId $\rightarrow$ MemberId, AchievementTitle, Description, AchievementYear & Achieve\allowbreak mentId & BCNF \\ \hline
+	
+	PhotoAlbums & PhotoAlbums(\textbf{AlbumId}, FamilyId, AlbumName, Description, CreatedBy, CreatedAt) & AlbumId $\rightarrow$ FamilyId, AlbumName, Description, CreatedBy, CreatedAt & AlbumId & BCNF \\ \hline
+	
+	AiQueryLogs & AiQueryLogs(\textbf{QueryId}, UserId, QueryType, QueryText, ResponseText, CreatedAt) & QueryId $\rightarrow$ UserId, QueryType, QueryText, ResponseText, CreatedAt & QueryId & BCNF \\ \hline
+	
+	AiEmbeddings & AiEmbeddings(\textbf{EmbeddingId}, EntityType, EntityId, EmbeddingVector, ModelVersion, CreatedAt) & EmbeddingId $\rightarrow$ EntityType, EntityId, EmbeddingVector, ModelVersion, CreatedAt & EmbeddingId & BCNF \\ \hline
+	
+	Ai\allowbreak Recom\allowbreak mendations & AiRecom\allowbreak mendations(\textbf{Recom\allowbreak mendationId}, UserId, TargetType, TargetId, Score, Reason, CreatedAt) & Recom\allowbreak mendationId $\rightarrow$ UserId, TargetType, TargetId, Score, Reason, CreatedAt & Recom\allowbreak mendationId & BCNF \\ \hline
+	
+	Reports & Reports(\textbf{ReportId}, FamilyId, ReportType, Parameters, FileUrl, GeneratedBy, GeneratedAt) & ReportId $\rightarrow$ FamilyId, ReportType, Parameters, FileUrl, GeneratedBy, GeneratedAt & ReportId & BCNF \\ \hline
+	
+	AuditLogs & AuditLogs(\textbf{LogId}, UserId, Action, EntityType, EntityId, OldValue, NewValue, IpAddress, CreatedAt) & LogId $\rightarrow$ UserId, Action, EntityType, EntityId, OldValue, NewValue, IpAddress, CreatedAt & LogId & BCNF \\ \hline
+	
+	System\allowbreak Configu\allowbreak rations & System\allowbreak Configurations(\textbf{ConfigId}, ConfigKey, ConfigValue, Description, UpdatedBy, UpdatedAt) & ConfigId $\rightarrow$ ConfigKey, ConfigValue, Description, UpdatedBy, UpdatedAt; UNIQUE(ConfigKey) & ConfigId & BCNF \\ \hline
+	
+	Backups & Backups(\textbf{BackupId}, BackupType, FilePath, Status, CreatedAt) & BackupId $\rightarrow$ BackupType, FilePath, Status, CreatedAt & BackupId & BCNF \\ \hline
+	
+	Moderation\allowbreak Logs & ModerationLogs(\textbf{ModerationId}, ContentType, ContentId, ModeratorId, Action, Reason, CreatedAt) & ModerationId $\rightarrow$ ContentType, ContentId, ModeratorId, Action, Reason, CreatedAt & ModerationId & BCNF \\ \hline
+	
 \end{longtable}
+\endgroup
 
+\vspace{0.8em}
+\noindent\textbf{Nhận xét chung:} Việc sử dụng khóa thay thế (UUID) đơn cột cho phần lớn thực thể mạnh giúp mọi phụ thuộc hàm không tầm thường đều có vế trái là khóa (thỏa mãn BCNF một cách tự nhiên). Đồng thời, không tồn tại phụ thuộc hàm bắc cầu giữa các thuộc tính không khóa. Các bảng trung gian ($n-n$) có khóa ghép trùng khớp với vế trái duy nhất của phụ thuộc hàm định nghĩa dữ liệu quan hệ, do đó cũng đạt chuẩn BCNF hiển nhiên.
 
-Nhận xét chung: việc dùng khóa thay thế (UUID) một cột cho phần lớn thực thể mạnh khiến mọi phụ thuộc hàm không tầm thường đều có vế trái là khóa (thỏa mãn định nghĩa BCNF một cách tự nhiên), miễn là không có hai cột không khóa nào phụ thuộc hàm lẫn nhau (đã kiểm tra không tồn tại trong thiết kế này). Các bảng trung gian n-n có khóa ghép trùng khớp với vế trái duy nhất của phụ thuộc hàm định nghĩa dữ liệu quan hệ, nên cũng đạt BCNF một cách hiển nhiên (phụ thuộc hàm tầm thường hoặc vế trái là khóa).
-
+\vspace{1.8em}
 \phantomsection
 \addcontentsline{toc}{section}{3.3. Ràng buộc toàn vẹn (RBTV)}
-{\Large\bfseries 3.3. Ràng buộc toàn vẹn (RBTV)}\par\vspace{0.7em}
+{\Large\bfseries 3.3. Ràng buộc toàn vẹn (RBTV)}\par\vspace{0.8em}
 
-Bên cạnh ràng buộc khóa/khóa ngoại đã suy ra từ chuẩn hóa (mục 3.1–3.2), FamilyConnect còn có một số quy tắc nghiệp vụ không thể biểu diễn chỉ bằng khóa chính/khóa ngoại — cần phát biểu tường minh dưới dạng ràng buộc toàn vẹn (RBTV) kèm bảng tầm ảnh hưởng (impact trên các thao tác Insert/Delete/Update), theo đúng phương pháp luận đã học.
+Bên cạnh các ràng buộc khóa và khóa ngoại đã suy ra từ chuẩn hóa (Mục 3.1–3.2), FamilyConnect còn có một số quy tắc nghiệp vụ không thể biểu diễn thuần túy bằng khóa chính/khóa ngoại. Các quy tắc này được phát biểu tường minh dưới dạng Ràng buộc toàn vẹn (RBTV) kèm bảng tầm ảnh hưởng (ảnh hưởng trên các thao tác \texttt{Insert}, \texttt{Delete}, \texttt{Update}) theo phương pháp luận môn học.
 
+\vspace{1.4em}
 \phantomsection
 \addcontentsline{toc}{subsection}{3.3.1. Ràng buộc toàn vẹn có bối cảnh là một quan hệ}
-{\large\bfseries 3.3.1. Ràng buộc toàn vẹn có bối cảnh là một quan hệ}\par\vspace{0.5em}
+{\large\bfseries 3.3.1. Ràng buộc toàn vẹn có bối cảnh là một quan hệ}\par\vspace{0.6em}
 
 \textbf{RB-1/Users (RBTV miền giá trị)}
-
 \begin{itemize}
-\item Nội dung: trạng thái tài khoản chỉ nhận một trong bốn giá trị hợp lệ.
+	\item \emph{Nội dung:} Trạng thái tài khoản chỉ nhận một trong bốn giá trị hợp lệ.
 \end{itemize}
 
 \begin{lstlisting}[language=SQL]
-∀u ∈ Users (u.Status ∈ {'active', 'inactive', 'suspended', 'pending'})
+	forall u in Users (u.Status in {'active', 'inactive', 'suspended', 'pending'})
 \end{lstlisting}
+\noindent\textbf{Bối cảnh:} \texttt{Users}.
 
-Bối cảnh: Users.
+\vspace{0.4em}
+{\centering
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|}
+		\hline
+		\textbf{RB-1} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
+		Users & + & - & + \\ \hline
+	\end{tabular}\par}
 
-\begin{longtable}{|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|}
-\hline
-\textbf{RB-1} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endfirsthead
-\hline
-\textbf{RB-1} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endhead
-Users & + & - & + \\ \hline
-\end{longtable}
-
-
+\vspace{1.0em}
 \textbf{RB-2/Events (RBTV liên thuộc tính)}
-
 \begin{itemize}
-\item Nội dung: thời điểm bắt đầu sự kiện phải diễn ra trước thời điểm kết thúc (nếu có khai báo).
+	\item \emph{Nội dung:} Thời điểm bắt đầu sự kiện phải diễn ra trước thời điểm kết thúc (nếu có).
 \end{itemize}
 
 \begin{lstlisting}[language=SQL]
-∀e ∈ Events (e.EndTime IS NULL ∨ e.StartTime ≤ e.EndTime)
+	forall e in Events (e.EndTime IS NULL OR e.StartTime <= e.EndTime)
 \end{lstlisting}
+\noindent\textbf{Bối cảnh:} \texttt{Events}.
 
-Bối cảnh: Events.
+\vspace{0.4em}
+{\centering
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|}
+		\hline
+		\textbf{RB-2} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
+		Events & + & - & + \\ \hline
+	\end{tabular}\par}
 
-\begin{longtable}{|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|}
-\hline
-\textbf{RB-2} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endfirsthead
-\hline
-\textbf{RB-2} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endhead
-Events & + & - & + \\ \hline
-\end{longtable}
-
-
+\vspace{1.0em}
 \textbf{RB-3/FamilyMembers (RBTV liên thuộc tính)}
-
 \begin{itemize}
-\item Nội dung: một thành viên đã mất bắt buộc phải có ngày mất; một thành viên còn sống không được có ngày mất.
+	\item \emph{Nội dung:} Thành viên đã mất bắt buộc phải có ngày mất; thành viên còn sống không được có ngày mất.
 \end{itemize}
 
 \begin{lstlisting}[language=SQL]
-∀m ∈ FamilyMembers ((m.IsAlive = 0 ⇒ m.DateOfDeath IS NOT NULL) ∧ (m.IsAlive = 1 ⇒ m.DateOfDeath IS NULL))
+	forall m in FamilyMembers ((m.IsAlive = 0 => m.DateOfDeath IS NOT NULL) AND (m.IsAlive = 1 => m.DateOfDeath IS NULL))
 \end{lstlisting}
+\noindent\textbf{Bối cảnh:} \texttt{FamilyMembers}.
 
-Bối cảnh: FamilyMembers.
+\vspace{0.4em}
+{\centering
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|}
+		\hline
+		\textbf{RB-3} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
+		FamilyMembers & + & - & + \\ \hline
+	\end{tabular}\par}
 
-\begin{longtable}{|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|}
-\hline
-\textbf{RB-3} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endfirsthead
-\hline
-\textbf{RB-3} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endhead
-FamilyMembers & + & - & + \\ \hline
-\end{longtable}
-
-
+\vspace{1.0em}
 \textbf{RB-4/ParentChildRelationships (RBTV liên bộ, tự tham chiếu)}
-
 \begin{itemize}
-\item Nội dung: một thành viên không thể vừa là cha/mẹ vừa là con của chính mình trong cùng một quan hệ.
+	\item \emph{Nội dung:} Một thành viên không thể vừa là cha/mẹ vừa là con của chính mình trong cùng một quan hệ.
 \end{itemize}
 
 \begin{lstlisting}[language=SQL]
-∀r ∈ ParentChildRelationships (r.ParentMemberId ≠ r.ChildMemberId)
+	forall r in ParentChildRelationships (r.ParentMemberId != r.ChildMemberId)
 \end{lstlisting}
+\noindent\textbf{Bối cảnh:} \texttt{ParentChildRelationships}. Ràng buộc này đã được hiện thực bằng \texttt{CONSTRAINT CK\_NotSelfParent} trong Phụ lục A.
 
-Bối cảnh: ParentChildRelationships. Ràng buộc này đã được hiện thực trực tiếp bằng CONSTRAINT CK\_NotSelfParent trong script Phụ lục A — RBTV lý thuyết và ràng buộc vật lý khớp nhau.
+\vspace{0.4em}
+{\centering
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|}
+		\hline
+		\textbf{RB-4} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
+		ParentChildRelationships & + & - & + \\ \hline
+	\end{tabular}\par}
 
-\begin{longtable}{|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|}
-\hline
-\textbf{RB-4} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endfirsthead
-\hline
-\textbf{RB-4} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endhead
-ParentChildRelationships & + & - & + \\ \hline
-\end{longtable}
-
-
+\vspace{1.4em}
 \phantomsection
 \addcontentsline{toc}{subsection}{3.3.2. Ràng buộc toàn vẹn có bối cảnh là nhiều quan hệ}
-{\large\bfseries 3.3.2. Ràng buộc toàn vẹn có bối cảnh là nhiều quan hệ}\par\vspace{0.5em}
+{\large\bfseries 3.3.2. Ràng buộc toàn vẹn có bối cảnh là nhiều quan hệ}\par\vspace{0.6em}
 
 \textbf{RB-5/EventParticipants, Events, FamilyMembers (RBTV tham chiếu liên quan hệ)}
-
 \begin{itemize}
-\item Nội dung: thành viên được mời tham gia một sự kiện phải thuộc cùng dòng họ với dòng họ tổ chức sự kiện đó.
+	\item \emph{Nội dung:} Thành viên được mời tham gia sự kiện phải thuộc cùng dòng họ với dòng họ tổ chức sự kiện đó.
 \end{itemize}
 
 \begin{lstlisting}[language=SQL]
-∀p ∈ EventParticipants, ∃e ∈ Events, ∃m ∈ FamilyMembers
-  (e.EventId = p.EventId ∧ m.MemberId = p.MemberId ∧ e.FamilyId = m.FamilyId)
+	forall p in EventParticipants, exists e in Events, exists m in FamilyMembers
+	(e.EventId = p.EventId AND m.MemberId = p.MemberId AND e.FamilyId = m.FamilyId)
 \end{lstlisting}
+\noindent\textbf{Bối cảnh:} \texttt{EventParticipants}, \texttt{Events}, \texttt{FamilyMembers}.
 
-Bối cảnh: EventParticipants, Events, FamilyMembers. Đây là ràng buộc liên quan hệ chưa thể biểu diễn bằng khóa ngoại thuần túy trong script Phụ lục A — cần kiểm tra ở tầng ứng dụng hoặc trigger AFTER INSERT/UPDATE trên EventParticipants.
+\vspace{0.4em}
+{\centering
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|}
+		\hline
+		\textbf{RB-5} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
+		EventParticipants & + & - & + \\ \hline
+		Events & - & - & + \\ \hline
+		FamilyMembers & - & - & + \\ \hline
+	\end{tabular}\par}
 
-\begin{longtable}{|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|}
-\hline
-\textbf{RB-5} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endfirsthead
-\hline
-\textbf{RB-5} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endhead
-EventParticipants & + & - & + \\ \hline
-Events &  & - & + \\ \hline
-FamilyMembers &  & - & + \\ \hline
-\end{longtable}
-
-
+\vspace{1.0em}
 \textbf{RB-6/ParentChildRelationships, FamilyMembers (RBTV liên bộ, liên quan hệ)}
-
 \begin{itemize}
-\item Nội dung: mỗi thành viên (ở vai trò con) có tối đa hai quan hệ cha/mẹ loại 'biological' — đúng hạn chế đã ghi nhận ở mục 5.2 của đồ án, nay được phát biểu tường minh dưới dạng RBTV.
+	\item \emph{Nội dung:} Mỗi thành viên (ở vai trò con) có tối đa hai quan hệ cha/mẹ loại \texttt{'biological'}.
 \end{itemize}
 
 \begin{lstlisting}[language=SQL]
-∀c ∈ FamilyMembers,
-  |{r ∈ ParentChildRelationships | r.ChildMemberId = c.MemberId ∧ r.RelationshipType = 'biological'}| ≤ 2
+	forall c in FamilyMembers,
+	|{r in ParentChildRelationships | r.ChildMemberId = c.MemberId AND r.RelationshipType = 'biological'}| <= 2
 \end{lstlisting}
+\noindent\textbf{Bối cảnh:} \texttt{ParentChildRelationships}, \texttt{FamilyMembers}.
 
-Bối cảnh: ParentChildRelationships, FamilyMembers. Chưa enforce được bằng khóa/khóa ngoại thuần túy; cần trigger AFTER INSERT/UPDATE trên ParentChildRelationships để đếm và chặn khi vượt quá 2.
+\vspace{0.4em}
+{\centering
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|}
+		\hline
+		\textbf{RB-6} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
+		ParentChildRelationships & + & - & + \\ \hline
+		FamilyMembers & - & - & - \\ \hline
+	\end{tabular}\par}
 
-\begin{longtable}{|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|}
-\hline
-\textbf{RB-6} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endfirsthead
-\hline
-\textbf{RB-6} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endhead
-ParentChildRelationships & + & - & + \\ \hline
-FamilyMembers &  &  &  \\ \hline
-\end{longtable}
-
-
+\vspace{1.0em}
 \textbf{RB-7/MemberVerifications, FamilyMembers, UserRoles (RBTV tham chiếu liên quan hệ)}
-
 \begin{itemize}
-\item Nội dung: người duyệt một yêu cầu xác minh (VerifiedBy) phải có vai trò (UserRoles) trong đúng dòng họ của thành viên được xác minh.
+	\item \emph{Nội dung:} Người duyệt yêu cầu xác minh (\texttt{VerifiedBy}) phải có vai trò (\texttt{UserRoles}) trong đúng dòng họ của thành viên được xác minh.
 \end{itemize}
 
 \begin{lstlisting}[language=SQL]
-∀v ∈ MemberVerifications (v.VerifiedBy IS NULL ∨
-  ∃m ∈ FamilyMembers, ∃ur ∈ UserRoles
-    (m.MemberId = v.MemberId ∧ ur.UserId = v.VerifiedBy ∧ ur.FamilyId = m.FamilyId))
+	forall v in MemberVerifications (v.VerifiedBy IS NULL OR
+	exists m in FamilyMembers, exists ur in UserRoles
+	(m.MemberId = v.MemberId AND ur.UserId = v.VerifiedBy AND ur.FamilyId = m.FamilyId))
 \end{lstlisting}
+\noindent\textbf{Bối cảnh:} \texttt{MemberVerifications}, \texttt{FamilyMembers}, \texttt{UserRoles}.
 
-Bối cảnh: MemberVerifications, FamilyMembers, UserRoles.
+\vspace{0.4em}
+{\centering
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|}
+		\hline
+		\textbf{RB-7} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
+		MemberVerifications & + & - & + \\ \hline
+		UserRoles & - & - & + \\ \hline
+		FamilyMembers & - & - & + \\ \hline
+	\end{tabular}\par}
 
-\begin{longtable}{|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|}
-\hline
-\textbf{RB-7} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endfirsthead
-\hline
-\textbf{RB-7} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endhead
-MemberVerifications & + & - & + \\ \hline
-UserRoles &  & - & + \\ \hline
-FamilyMembers &  &  & - (đổi FamilyId của thành viên có thể phá vỡ điều kiện ur.FamilyId = m.FamilyId) \\ \hline
-\end{longtable}
-
-
+\vspace{1.0em}
 \textbf{RB-8/Comments (RBTV liên thuộc tính, tự tham chiếu)}
-
 \begin{itemize}
-\item Nội dung: một bình luận trả lời (ParentCommentId khác NULL) phải thuộc cùng bài đăng (PostId) với bình luận cha mà nó trả lời.
+	\item \emph{Nội dung:} Bình luận trả lời (\texttt{ParentCommentId} khác NULL) phải thuộc cùng bài đăng (\texttt{PostId}) với bình luận cha.
 \end{itemize}
 
 \begin{lstlisting}[language=SQL]
-∀c ∈ Comments (c.ParentCommentId IS NULL ∨
-  ∃p ∈ Comments (p.CommentId = c.ParentCommentId ∧ p.PostId = c.PostId))
+	forall c in Comments (c.ParentCommentId IS NULL OR
+	exists p in Comments (p.CommentId = c.ParentCommentId AND p.PostId = c.PostId))
 \end{lstlisting}
+\noindent\textbf{Bối cảnh:} \texttt{Comments}.
 
-Bối cảnh: Comments.
+\vspace{0.4em}
+{\centering
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|}
+		\hline
+		\textbf{RB-8} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
+		Comments & + & - & + \\ \hline
+	\end{tabular}\par}
 
-\begin{longtable}{|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|}
-\hline
-\textbf{RB-8} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endfirsthead
-\hline
-\textbf{RB-8} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endhead
-Comments & + & - & + \\ \hline
-\end{longtable}
-
-
+\vspace{1.0em}
 \textbf{RB-9/Marriages (RBTV liên bộ)}
-
 \begin{itemize}
-\item Nội dung: hai vợ chồng trong một cuộc hôn nhân phải là hai thành viên khác nhau, và tại một thời điểm một thành viên không được có nhiều hơn một cuộc hôn nhân ở trạng thái 'married'.
+	\item \emph{Nội dung:} Hai vợ chồng phải là hai thành viên khác nhau; tại một thời điểm mỗi thành viên không có quá 1 cuộc hôn nhân ở trạng thái \texttt{'married'}.
 \end{itemize}
 
 \begin{lstlisting}[language=SQL]
-∀m ∈ Marriages (m.Spouse1Id ≠ m.Spouse2Id)
-∀x ∈ FamilyMembers,
-  |{m ∈ Marriages | (m.Spouse1Id = x.MemberId ∨ m.Spouse2Id = x.MemberId) ∧ m.Status = 'married'}| ≤ 1
+	forall m in Marriages (m.Spouse1Id != m.Spouse2Id)
+	forall x in FamilyMembers,
+	|{m in Marriages | (m.Spouse1Id = x.MemberId OR m.Spouse2Id = x.MemberId) AND m.Status = 'married'}| <= 1
 \end{lstlisting}
+\noindent\textbf{Bối cảnh:} \texttt{Marriages}.
 
-Bối cảnh: Marriages. Điều kiện Spouse1Id ≠ Spouse2Id đã có thể hiện thực bằng CONSTRAINT CHECK (tương tự CK\_NotSelfMarriage đã dùng trong Phụ lục A); điều kiện 'tối đa 1 hôn nhân đang hiệu lực' cần trigger.
+\vspace{0.4em}
+{\centering
+	\renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{|>{\raggedright\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|>{\centering\arraybackslash}p{0.22\textwidth}|}
+		\hline
+		\textbf{RB-9} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
+		Marriages & + & - & + \\ \hline
+	\end{tabular}\par}
 
-\begin{longtable}{|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|}
-\hline
-\textbf{RB-9} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endfirsthead
-\hline
-\textbf{RB-9} & \textbf{Insert} & \textbf{Delete} & \textbf{Update} \\ \hline
-\endhead
-Marriages & + & - & + \\ \hline
-\end{longtable}
-
-
+\vspace{1.4em}
 \phantomsection
 \addcontentsline{toc}{subsection}{3.3.3. Bảng tổng hợp các ràng buộc toàn vẹn}
-{\large\bfseries 3.3.3. Bảng tổng hợp các ràng buộc toàn vẹn}\par\vspace{0.5em}
+{\large\bfseries 3.3.3. Bảng tổng hợp các ràng buộc toàn vẹn}\par\vspace{0.6em}
 
-Bảng dưới đây tổng hợp cả chín ràng buộc, phân loại theo bối cảnh (một hay nhiều quan hệ) và cơ chế thực thi tương ứng ở tầng vật lý.
-
-\begin{longtable}{|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|p{0.225\textwidth}|}
-\hline
-\textbf{Mã} & \textbf{Loại RBTV} & \textbf{Quan hệ liên quan} & \textbf{Cơ chế thực thi đề xuất} \\ \hline
-\endfirsthead
-\hline
-\textbf{Mã} & \textbf{Loại RBTV} & \textbf{Quan hệ liên quan} & \textbf{Cơ chế thực thi đề xuất} \\ \hline
-\endhead
-RB-1 & Miền giá trị & Users & CHECK (đã có trong Phụ lục A) \\ \hline
-RB-2 & Liên thuộc tính & Events & Cần bổ sung CHECK hoặc trigger \\ \hline
-RB-3 & Liên thuộc tính & FamilyMembers & Cần bổ sung CHECK hoặc trigger \\ \hline
-RB-4 & Liên bộ (tự tham chiếu) & ParentChildRelationships & CHECK (đã có: CK\_NotSelfParent) \\ \hline
-RB-5 & Tham chiếu, liên quan hệ & EventParticipants, Events, FamilyMembers & Trigger (chưa có trong Phụ lục A) \\ \hline
-RB-6 & Liên bộ, liên quan hệ & ParentChildRelationships, FamilyMembers & Trigger (hạn chế đã ghi ở mục 5.2) \\ \hline
-RB-7 & Tham chiếu, liên quan hệ & MemberVerifications, FamilyMembers, UserRoles & Trigger (chưa có trong Phụ lục A) \\ \hline
-RB-8 & Liên thuộc tính (tự tham chiếu) & Comments & Trigger (chưa có trong Phụ lục A) \\ \hline
-RB-9 & Liên bộ & Marriages & CHECK một phần (đã có: CK\_NotSelfMarriage) + trigger cho phần còn lại \\ \hline
+\begingroup
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{5pt}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{0.1\textwidth}
+		|>{\raggedright\arraybackslash}p{0.22\textwidth}
+		|>{\raggedright\arraybackslash}p{0.32\textwidth}
+		|>{\raggedright\arraybackslash}p{0.26\textwidth}|}
+	\hline
+	\textbf{Mã} & \textbf{Loại RBTV} & \textbf{Quan hệ liên quan} & \textbf{Cơ chế thực thi đề xuất} \\ \hline
+	\endfirsthead
+	\hline
+	\textbf{Mã} & \textbf{Loại RBTV} & \textbf{Quan hệ liên quan} & \textbf{Cơ chế thực thi đề xuất} \\ \hline
+	\endhead
+	RB-1 & Miền giá trị & Users & CHECK (Phụ lục A) \\ \hline
+	RB-2 & Liên thuộc tính & Events & CHECK / Trigger \\ \hline
+	RB-3 & Liên thuộc tính & FamilyMembers & CHECK / Trigger \\ \hline
+	RB-4 & Liên bộ (tự tham chiếu) & ParentChildRelationships & CHECK (CK\_NotSelfParent) \\ \hline
+	RB-5 & Tham chiếu liên quan hệ & EventParticipants, Events, FamilyMembers & Trigger \\ \hline
+	RB-6 & Liên bộ, liên quan hệ & ParentChildRelationships, FamilyMembers & Trigger \\ \hline
+	RB-7 & Tham chiếu liên quan hệ & MemberVerifications, FamilyMembers, UserRoles & Trigger \\ \hline
+	RB-8 & Liên thuộc tính (tự tham chiếu) & Comments & Trigger \\ \hline
+	RB-9 & Liên bộ & Marriages & CHECK + Trigger \\ \hline
 \end{longtable}
+\endgroup
 
-
-Nhận xét: phần lớn ràng buộc trong bối cảnh một quan hệ (RB-1 đến RB-4) có thể ánh xạ trực tiếp thành CONSTRAINT CHECK ở tầng vật lý — bốn trong số đó (RB-1, RB-4, một phần RB-9) đã được hiện thực trong script Phụ lục A. Các ràng buộc liên quan hệ (RB-5, RB-6, RB-7, RB-8) đòi hỏi trigger vì SQL Server không hỗ trợ CHECK tham chiếu bảng khác; đây cũng là nội dung được liệt kê ở hướng phát triển tại mục 5.3 của đồ án.
+\vspace{0.8em}
+\noindent\textbf{Nhận xét:} Các ràng buộc đơn quan hệ (RB-1 $\rightarrow$ RB-4) được thực thi hiệu quả bằng \texttt{CONSTRAINT CHECK}. Các ràng buộc liên quan hệ phức tạp (RB-5 $\rightarrow$ RB-9) đòi hỏi cơ chế Trigger ở tầng cơ sở dữ liệu hoặc xử lý tại tầng ứng dụng.
