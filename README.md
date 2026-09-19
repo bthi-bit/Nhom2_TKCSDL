@@ -4,7 +4,6 @@
 ```
 .
 ├── main.tex          # File chính: preamble + gộp các chương
-├── cover.tex         # Nội dung trang bìa
 ├── chapters/         # Mỗi chương/phần là một file .tex riêng
 │   ├── 00_frontmatter.tex
 │   ├── 01_mo_dau.tex
