@@ -1,0 +1,82 @@
+\chapter{THIẾT KẾ VẬT LÝ}
+
+\section{Lựa chọn hệ quản trị CSDL}
+
+\section{Ánh xạ kiểu dữ liệu logic sang vật lý}
+
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Khái niệm logic} & \textbf{Kiểu SQL Server} & \textbf{Ghi chú} \\
+\midrule
+Khóa thay thế (UUID) & \texttt{UNIQUEIDENTIFIER} & Sinh tự động bằng \texttt{NEWID()} \\
+Văn bản tiếng Việt & \texttt{NVARCHAR(n/MAX)} & Lưu dữ liệu Unicode \\
+Mã, URL, email & \texttt{VARCHAR(n)} & Phù hợp dữ liệu ASCII \\
+Thời điểm & \texttt{DATETIME2} & Độ chính xác cao, quy ước lưu UTC \\
+Đúng/Sai & \texttt{BIT} & Tương đương Boolean \\
+JSON & \texttt{NVARCHAR(MAX)} & Kiểm tra bằng \texttt{ISJSON()} \\
+Vector AI & \texttt{NVARCHAR(MAX)} & Lưu mảng số dạng JSON \\
+Số tự tăng & \texttt{INT/BIGINT IDENTITY} & Phù hợp bảng log, cấu hình \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Ràng buộc toàn vẹn và chính sách xóa/cập nhật}
+
+\begin{itemize}
+    \item \textbf{CASCADE:} áp dụng cho các đối tượng phụ thuộc vào \texttt{GIA\_DINH} như chi nhánh, bài đăng, sự kiện và tài liệu liên quan.
+    \item \textbf{NO ACTION:} áp dụng cho một số quan hệ như \texttt{FamilyMembers.BranchId} và \texttt{EventParticipants.MemberId} để tránh multiple cascade paths trong SQL Server.
+    \item \textbf{Thực thể yếu:} \texttt{UserProfiles}, \texttt{MemberVerifications} và \texttt{EventReminders} sử dụng CASCADE do phụ thuộc vòng đời vào thực thể chủ.
+\end{itemize}
+
+\section{Chỉ mục (Index)}
+
+\begin{itemize}
+    \item Tra cứu thành viên và chi nhánh theo dòng họ.
+    \item Tra cứu bài đăng và sự kiện theo dòng họ.
+    \item Tra cứu bình luận theo bài đăng.
+    \item Tra cứu dữ liệu AI theo cặp \texttt{(EntityType, EntityId)}.
+\end{itemize}
+\section{Trích đoạn script T-SQL}
+\begin{infobox}
+\begin{verbatim}
+CREATE TABLE Events (
+    EventId UNIQUEIDENTIFIER NOT NULL
+        DEFAULT NEWID() PRIMARY KEY,
+    FamilyId UNIQUEIDENTIFIER NOT NULL
+        REFERENCES Families(FamilyId) ON DELETE CASCADE,
+    CreatedBy UNIQUEIDENTIFIER NULL
+        REFERENCES Users(UserId),
+    Title NVARCHAR(200) NOT NULL,
+    StartTime DATETIME2 NOT NULL,
+    EndTime DATETIME2 NULL
+);
+
+CREATE TABLE EventParticipants (
+    EventId UNIQUEIDENTIFIER NOT NULL
+        REFERENCES Events(EventId) ON DELETE CASCADE,
+    MemberId UNIQUEIDENTIFIER NOT NULL
+        REFERENCES FamilyMembers(MemberId) ON DELETE NO ACTION,
+    RsvpStatus VARCHAR(20) NOT NULL DEFAULT 'invited'
+        CHECK (RsvpStatus IN
+        ('invited','accepted','declined','maybe')),
+    PRIMARY KEY (EventId, MemberId)
+);
+\end{verbatim}
+\end{infobox}
+Đối với thực thể yếu \texttt{EventReminders}, khóa chính ghép giữa khóa của sự kiện và thuộc tính cục bộ:
+\begin{verbatim}
+PRIMARY KEY (EventId, RemindAt)
+\end{verbatim}
+\section{Kiểm thử bằng dữ liệu mẫu}
+trường hợpg để kiểm thử:
+\begin{enumerate}
+    \item Thêm một \texttt{Family} chưa có thành viên $\rightarrow$ hợp lệ.
+    \item Thêm \texttt{FamilyMember} chưa liên kết tài khoản $\rightarrow$ hợp lệ vì \texttt{UserId} cho phép NULL.
+    \item Thêm hai quan hệ cha/mẹ cho cùng một thành viên $\rightarrow$ hợp lệ.
+    \item Xóa một sự kiện có người tham gia $\rightarrow$ các bản ghi liên quan được xóa theo CASCADE.
+    \item Thêm hai lời nhắc có cùng \texttt{(EventId, RemindAt)} $\rightarrow$ bị từ chối bởi khóa chính ghép.
+\end{enumerate}
+\section*{Kết luận Chương 4}
+\addcontentsline{toc}{section}{Kết luận Chương 4}
+Thiết kế vật lý đã chuyển lược đồ logic của FamilyConnect thành cơ sở dữ liệu triển khai trên Microsoft SQL Server 2022. Các kiểu dữ liệu, khóa ngoại, chính sách xóa/cập nhật và chỉ mục được lựa chọn phù hợp với nghiệp vụ. Script T-SQL và các trường hợp kiểm thử cung cấp cơ sở để triển khai và kiểm chứng cơ sở dữ liệu trong môi trường Docker.
