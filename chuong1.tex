@@ -1,0 +1,29 @@
+\chapter{GIỚI THIỆU VÀ PHẠM VI ĐỀ TÀI}
+
+\section{Bối cảnh}
+
+Các gia đình hiện đại ngày càng phân tán về mặt địa lý do học tập, công việc, di cư và toàn cầu hóa. Hệ quả là việc liên lạc giữa các thành viên trở nên thưa thớt, thông tin gia phả khó được lưu giữ đầy đủ, và các thế hệ trẻ có ít cơ hội hiểu về nguồn gốc cũng như xây dựng mối quan hệ gắn kết trong gia đình.
+
+Các nền tảng mạng xã hội hiện có hỗ trợ giao tiếp nhưng không được thiết kế để lưu trữ gia phả, hỗ trợ cộng tác theo hướng gia đình hay duy trì phát triển gia đình lâu dài. Ngược lại, các hệ thống gia phả truyền thống chỉ tập trung ghi nhận huyết thống mà thiếu các tính năng cộng đồng tương tác.
+
+FamilyConnect được đề xuất nhằm giải quyết khoảng trống này: tích hợp quản lý gia phả, giao tiếp gia đình, quản lý sự kiện, chia sẻ tri thức và các dịch vụ hỗ trợ bởi AI vào một hệ sinh thái phần mềm thống nhất.
+
+\section{Mục tiêu của công tác thiết kế CSDL}
+
+\begin{itemize}
+  \item Xây dựng mô hình dữ liệu phản ánh đúng nghiệp vụ gia phả và cộng đồng gia đình, kiểm chứng được với người dùng nghiệp vụ.
+  \item Chuyển mô hình quan niệm thành lược đồ quan hệ chuẩn hóa, tránh dị thường thêm/sửa/xóa.
+  \item Hiện thực lược đồ vật lý trên SQL Server với chỉ mục phù hợp workload thực tế của hệ thống.
+\end{itemize}
+
+\section{Phạm vi thiết kế}
+
+Đề án tập trung vào các nhóm chức năng có ảnh hưởng trực tiếp đến cấu trúc dữ liệu: Người dùng \& bảo mật (RBAC), Gia đình \& Gia phả, Cộng đồng (bài viết/bình luận), Sự kiện, Danh bạ gia đình, Di sản gia đình, và một phần Quản trị hệ thống (nhật ký kiểm toán). Lớp dịch vụ AI (semantic search, gợi ý) được xem là dịch vụ tiêu thụ dữ liệu quan hệ và không đi sâu vào hạ tầng vector/embedding trong phạm vi CSDL quan hệ của đề án.
+
+\begin{infobox}
+\textbf{Quy trình thực hiện}
+
+\smallskip
+Đề án tuân theo đúng chu kỳ sống của CSDL: Phân tích yêu cầu → Thiết kế quan niệm (ERD/EER) → Thiết kế logic (lược đồ quan hệ, chuẩn hóa) → Thiết kế vật lý (DDL, chỉ mục). Mỗi giai đoạn nhận input từ giai đoạn trước và tạo output làm input cho giai đoạn sau.
+\end{infobox}
+

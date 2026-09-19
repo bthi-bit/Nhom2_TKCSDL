@@ -1,0 +1,21 @@
+\chapter{KẾT LUẬN}
+
+\section{Kết quả đạt được}
+
+\begin{itemize}
+  \item Xây dựng được bộ quy tắc nghiệp vụ và danh sách thực thể bám sát chức năng thực tế của FamilyConnect.
+  \item Thiết kế ERD/EER xử lý đúng điểm khó nhất của đề tài: mối kết hợp tự thân (huyết thống, hôn nhân) trên thực thể ThanhVien.
+  \item Ánh xạ và chứng minh lược đồ quan hệ đạt 3NF/BCNF, loại bỏ các dị thường thêm/sửa/xóa điển hình.
+  \item Đề xuất chỉ mục và phân vùng vật lý bám theo workload dự kiến của hệ thống, phù hợp SQL Server.
+\end{itemize}
+
+\section{Hạn chế và hướng phát triển}
+
+\begin{itemize}
+  \item Chưa mô hình hóa chi tiết ràng buộc thời gian không chồng lấp của HonNhan (cần trigger hoặc kiểm tra ở tầng ứng dụng).
+  \item Chưa đi sâu thiết kế hạ tầng lưu trữ vector cho các dịch vụ AI (semantic search, gợi ý).
+  \item Có thể mở rộng mô hình Closure Table cho cây gia phả khi số thế hệ và khối lượng truy vấn tăng cao.
+  \item Ràng buộc "tối đa hai cha/mẹ trực tiếp" (2.2) và ràng buộc \{disjoint\} giữa QuanTriGiaDinh/ThanhVienThuong (3.4) chưa thể biểu diễn thuần bằng khóa chính/khóa ngoại --- cần CHECK constraint kiểu ứng dụng hoặc trigger, hiện chưa hiện thực trong phạm vi đề án.
+  \item CamXuc (2.1) tạm loại khỏi phạm vi thiết kế bản này; có thể bổ sung như một thực thể yếu tương tự BinhLuan ở hướng phát triển tiếp theo.
+\end{itemize}
+
