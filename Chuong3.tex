@@ -1,0 +1,655 @@
+\chapter{THIẾT KẾ LOGIC --- PHỤ THUỘC HÀM VÀ CHUẨN HÓA}
+
+Chương này minh chứng việc áp dụng lý thuyết phụ thuộc hàm, bao đóng, tìm khóa và các thuật toán chuẩn hóa để suy ra lược đồ quan hệ của FamilyConnect. Phần minh họa được thực hiện chi tiết trên nhóm chức năng Sự kiện, sau đó tổng hợp kết quả chuẩn hóa cho toàn bộ hệ thống và xác định các ràng buộc toàn vẹn cần được thực thi ở tầng vật lý.
+
+\section{Ví dụ}
+\begin{infobox}
+\begin{verbatim}
+BAO_CAO_SU_KIEN(
+    maSuKien, tieuDe, thoiGianBD, maGiaDinh, tenGiaDinh,maThanhVien, hoTenTV, rsvpStatus
+)
+\end{verbatim}
+\end{infobox}
+\subsection{Xác định phụ thuộc hàm từ quy tắc nghiệp vụ}
+các phụ thuộc hàm:
+\begin{itemize}
+    \item \textbf{F1:} $maSuKien \rightarrow tieuDe, thoiGianBD, maGiaDinh$. Mỗi sự kiện có tiêu đề, thời gian và thuộc một dòng họ duy nhất.
+    \item \textbf{F2:} $maGiaDinh \rightarrow tenGiaDinh$. Mỗi mã dòng họ xác định một tên dòng họ.
+    \item \textbf{F3:} $maThanhVien \rightarrow hoTenTV, maGiaDinh$. Mỗi thành viên có họ tên và thuộc một dòng họ cố định.
+    \item \textbf{F4:} $(maSuKien, maThanhVien) \rightarrow rsvpStatus$. Trạng thái RSVP chỉ có ý nghĩa trong ngữ cảnh một thành viên tham gia một sự kiện cụ thể.
+\end{itemize}
+
+\begin{infobox}
+\textbf{Lưu ý:} F3 là giả định đơn giản hóa chỉ dành riêng cho ví dụ minh họa phân rã ở mục này, trong đó mỗi thành viên được gắn với đúng một dòng họ khai sinh/gốc. Giả định này khác với ngữ cảnh phân quyền đa dòng họ ở Chương 2, nơi một người dùng có thể giữ vai trò ở nhiều dòng họ khác nhau thông qua bảng \texttt{UserRoles(UserId, RoleId, FamilyId)}. Hai trường hợp mô tả hai khái niệm khác nhau: dòng họ gốc của thành viên và dòng họ mà người dùng có quyền truy cập.
+\end{infobox}
+\subsection{Tìm khóa bằng bao đóng}
+
+Xét tính bao đóng:
+
+\[
+X^+ = \{maSuKien, maThanhVien\}
+\]
+
+\begin{enumerate}
+    \item Bước 0:
+    \[
+    X^+ = \{maSuKien, maThanhVien\}
+    \]
+    \item Áp dụng F1:
+    \[
+    X^+ = X^+ \cup \{tieuDe, thoiGianBD, maGiaDinh\}
+    \]
+    \item Áp dụng F3:
+    \[
+    X^+ = X^+ \cup \{hoTenTV\}
+    \]
+    \item Áp dụng F2:
+    \[
+    X^+ = X^+ \cup \{tenGiaDinh\}
+    \]
+    \item Áp dụng F4:
+    \[
+    X^+ = X^+ \cup \{rsvpStatus\}
+    \]
+\end{enumerate}
+Suy ra:
+\[
+X^+ = U
+\]
+
+trong đó $U$ là toàn bộ tập thuộc tính của quan hệ \texttt{BAO\_CAO\_SU\_KIEN}. Vì $maSuKien^+ \neq U$ và $maThanhVien^+ \neq U$, cặp $(maSuKien, maThanhVien)$ là siêu khóa tối thiểu.
+
+\[
+\boxed{K=(maSuKien,maThanhVien)}
+\]
+
+Do đó, $K$ là khóa ứng viên duy nhất của quan hệ \texttt{BAO\_CAO\_SU\_KIEN}.
+
+\subsection{Bất thường dữ liệu (Data Anomalies)}
+
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Loại bất thường} & \textbf{Biểu hiện trên BAO\_CAO\_SU\_KIEN} \\
+\midrule
+Thêm (Insertion) &
+Không thể lưu một sự kiện mới nếu chưa có ít nhất một thành viên được mời, vì khóa chính bắt buộc phải có \texttt{maThanhVien}. \\
+
+Sửa (Update) &
+Nếu thay đổi \texttt{tieuDe} của một sự kiện có 50 người tham gia thì phải sửa 50 dòng, dễ gây mâu thuẫn dữ liệu nếu có dòng bị bỏ sót. \\
+
+Xóa (Deletion) &
+Xóa người tham gia cuối cùng của một sự kiện sẽ đồng thời làm mất thông tin \texttt{tieuDe}, \texttt{thoiGianBD} và \texttt{maGiaDinh} của sự kiện. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Kiểm tra dạng chuẩn và phân rã (2NF $\rightarrow$ 3NF $\rightarrow$ BCNF)}
+
+Với khóa:
+
+\[
+K=(maSuKien,maThanhVien)
+\]
+
+\[
+maSuKien \rightarrow tieuDe,thoiGianBD,maGiaDinh,tenGiaDinh
+\]
+
+
+\[
+maThanhVien \rightarrow hoTenTV
+\]
+
+\begin{infobox}
+\begin{verbatim}
+SU_KIEN_TMP(
+    maSuKien, tieuDe, thoiGianBD, maGiaDinh, tenGiaDinh
+)
+
+THANH_VIEN_TMP(
+    maThanhVien, hoTenTV, maGiaDinh
+)
+
+THAM_GIA(
+    maSuKien, maThanhVien, rsvpStatus
+)
+\end{verbatim}
+\end{infobox}
+\[
+maSuKien \rightarrow maGiaDinh \rightarrow tenGiaDinh
+\]
+\begin{infobox}
+\begin{verbatim}
+GIA_DINH(
+    maGiaDinh, tenGiaDinh
+)
+SU_KIEN(
+    maSuKien, tieuDe, thoiGianBD, maGiaDinh FK
+)
+THANH_VIEN(
+    maThanhVien, hoTenTV, maGiaDinh FK
+)
+
+THAM_GIA(
+    maSuKien FK, maThanhVien FK, rsvpStatus
+)
+\end{verbatim}
+\end{infobox}
+
+\subsection{Kiểm tra BCNF}
+
+\begin{center}
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Quan hệ} & \textbf{Phụ thuộc hàm} & \textbf{Kết luận} \\
+\midrule
+GIA\_DINH &
+$maGiaDinh \rightarrow tenGiaDinh$ &
+$maGiaDinh$ là khóa $\rightarrow$ đạt BCNF \\
+
+SU\_KIEN &
+$maSuKien \rightarrow \{tieuDe,thoiGianBD,maGiaDinh\}$ &
+$maSuKien$ là khóa $\rightarrow$ đạt BCNF \\
+
+THANH\_VIEN &
+$maThanhVien \rightarrow \{hoTenTV,maGiaDinh\}$ &
+$maThanhVien$ là khóa $\rightarrow$ đạt BCNF \\
+
+THAM\_GIA &
+$(maSuKien,maThanhVien)\rightarrow rsvpStatus$ &
+Vế trái là khóa ghép $\rightarrow$ đạt BCNF \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Kiểm tra bảo toàn kết nối (Lossless-Join)}
+
+\begin{itemize}
+    \item $SU\_KIEN \cap GIA\_DINH = \{maGiaDinh\}$, là khóa của \texttt{GIA\_DINH} $\Rightarrow$ bảo toàn kết nối.
+    \item $THANH\_VIEN \cap GIA\_DINH = \{maGiaDinh\}$, là khóa của \texttt{GIA\_DINH} $\Rightarrow$ bảo toàn kết nối.
+    \item $THAM\_GIA \cap SU\_KIEN = \{maSuKien\}$, là khóa của \texttt{SU\_KIEN} $\Rightarrow$ bảo toàn kết nối.
+    \item $THAM\_GIA \cap THANH\_VIEN = \{maThanhVien\}$, là khóa của \texttt{THANH\_VIEN} $\Rightarrow$ bảo toàn kết nối.
+\end{itemize}
+
+\section{Tổng hợp phân tích chuẩn hóa cho toàn bộ hệ thống}
+
+\[
+\text{Quy tắc nghiệp vụ}
+\rightarrow
+\text{Phụ thuộc hàm}
+\rightarrow
+\text{Bao đóng và khóa}
+\rightarrow
+\text{2NF}
+\rightarrow
+\text{3NF}
+\rightarrow
+\text{BCNF}
+\]
+
+\begin{center}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}p{0.30\linewidth}>{\raggedright\arraybackslash}p{0.34\linewidth}l@{}}
+\toprule
+\textbf{Quan hệ} & \textbf{Lược đồ quan hệ} & \textbf{Phụ thuộc hàm đầy đủ} & \textbf{Dạng chuẩn} \\
+\midrule
+
+Users &
+\texttt{Users(UserId, Username, Email, Phone, PasswordHash, FullName, AvatarUrl, Status, LastLoginAt, CreatedAt, UpdatedAt)} &
+$UserId \rightarrow$ Username, Email, Phone, PasswordHash, FullName, AvatarUrl, Status, LastLoginAt, CreatedAt, UpdatedAt &
+BCNF \\
+
+UserProfiles &
+\texttt{UserProfiles(UserId, DateOfBirth, Gender, Address, Bio, UpdatedAt)} &
+$UserId \rightarrow$ DateOfBirth, Gender, Address, Bio, UpdatedAt &
+BCNF \\
+
+Roles &
+\texttt{Roles(RoleId, RoleName, Description)} &
+$RoleId \rightarrow$ RoleName, Description &
+BCNF \\
+
+Permissions &
+\texttt{Permissions(PermissionId, PermissionCode, Description)} &
+$PermissionId \rightarrow$ PermissionCode, Description &
+BCNF \\
+
+RolePermissions &
+\texttt{RolePermissions(RoleId, PermissionId)} &
+$(RoleId,PermissionId)\rightarrow \varnothing$; không có thuộc tính mô tả ngoài khóa &
+BCNF \\
+
+Families &
+\texttt{Families(FamilyId, FamilyName, Origin, Description, CoverImageUrl, CreatedBy, CreatedAt)} &
+$FamilyId \rightarrow$ FamilyName, Origin, Description, CoverImageUrl, CreatedBy, CreatedAt &
+BCNF \\
+
+UserRoles &
+\texttt{UserRoles(UserId, RoleId, FamilyId)} &
+$(UserId,RoleId,FamilyId)\rightarrow\varnothing$; khóa ghép, không có thuộc tính mô tả ngoài khóa &
+BCNF \\
+
+Branches &
+\texttt{Branches(BranchId, FamilyId, ParentBranchId, BranchName, Description)} &
+$BranchId \rightarrow$ FamilyId, ParentBranchId, BranchName, Description &
+BCNF \\
+
+FamilyMembers &
+\texttt{FamilyMembers(MemberId, FamilyId, BranchId, UserId, FullName, Gender, DateOfBirth, DateOfDeath, IsAlive, BirthPlace, GenerationLevel, Biography, AvatarUrl, CreatedAt)} &
+$MemberId \rightarrow$ FamilyId, BranchId, UserId, FullName, Gender, DateOfBirth, DateOfDeath, IsAlive, BirthPlace, GenerationLevel, Biography, AvatarUrl, CreatedAt &
+BCNF \\
+
+ParentChildRelationships &
+\texttt{ParentChildRelationships(RelationshipId, ParentMemberId, ChildMemberId, RelationshipType)} &
+$RelationshipId \rightarrow$ ParentMemberId, ChildMemberId, RelationshipType; UNIQUE trên tập FK đảm bảo tính duy nhất nghiệp vụ &
+BCNF \\
+
+Marriages &
+\texttt{Marriages(MarriageId, Spouse1Id, Spouse2Id, MarriageDate, DivorceDate, Status)} &
+$MarriageId \rightarrow$ Spouse1Id, Spouse2Id, MarriageDate, DivorceDate, Status &
+BCNF \\
+
+MemberVerifications &
+\texttt{MemberVerifications(VerificationId, MemberId, RequestedBy, Status, EvidenceUrl, VerifiedBy, VerifiedAt, CreatedAt)} &
+$VerificationId \rightarrow$ MemberId, RequestedBy, Status, EvidenceUrl, VerifiedBy, VerifiedAt, CreatedAt &
+BCNF \\
+
+Posts &
+\texttt{Posts(PostId, FamilyId, AuthorId, PostType, Content, Visibility, IsPinned, CreatedAt, UpdatedAt)} &
+$PostId \rightarrow$ FamilyId, AuthorId, PostType, Content, Visibility, IsPinned, CreatedAt, UpdatedAt &
+BCNF \\
+
+Comments &
+\texttt{Comments(CommentId, PostId, AuthorId, ParentCommentId, Content, CreatedAt)} &
+$CommentId \rightarrow$ PostId, AuthorId, ParentCommentId, Content, CreatedAt &
+BCNF \\
+
+Reactions &
+\texttt{Reactions(ReactionId, UserId, TargetType, TargetId, ReactionType, CreatedAt)} &
+$ReactionId \rightarrow$ UserId, TargetType, TargetId, ReactionType, CreatedAt; UNIQUE(UserId,TargetType,TargetId) &
+BCNF \\
+
+MediaAssets &
+\texttt{MediaAssets(MediaId, OwnerType, OwnerId, MediaUrl, MediaType, Caption, UploadedBy, UploadedAt)} &
+$MediaId \rightarrow$ OwnerType, OwnerId, MediaUrl, MediaType, Caption, UploadedBy, UploadedAt &
+BCNF \\
+
+Events &
+\texttt{Events(EventId, FamilyId, CreatedBy, Title, Description, EventType, Location, StartTime, EndTime, CreatedAt)} &
+$EventId \rightarrow$ FamilyId, CreatedBy, Title, Description, EventType, Location, StartTime, EndTime, CreatedAt &
+BCNF \\
+
+EventParticipants &
+\texttt{EventParticipants(EventId, MemberId, RsvpStatus, RespondedAt)} &
+$(EventId,MemberId)\rightarrow$ RsvpStatus, RespondedAt &
+BCNF \\
+
+EventReminders &
+\texttt{EventReminders(EventId, RemindAt, Channel, IsSent)} &
+$(EventId,RemindAt)\rightarrow$ Channel, IsSent &
+BCNF \\
+
+ProfessionalProfiles &
+\texttt{ProfessionalProfiles(ProfileId, MemberId, Occupation, Company, Industry, Position, YearsExperience, Location)} &
+$ProfileId \rightarrow$ MemberId, Occupation, Company, Industry, Position, YearsExperience, Location &
+BCNF \\
+
+EducationProfiles &
+\texttt{EducationProfiles(EducationId, MemberId, SchoolName, Degree, FieldOfStudy, StartYear, EndYear)} &
+$EducationId \rightarrow$ MemberId, SchoolName, Degree, FieldOfStudy, StartYear, EndYear &
+BCNF \\
+
+HistoricalDocuments &
+\texttt{HistoricalDocuments(DocumentId, FamilyId, Title, Description, DocType, FileUrl, UploadedBy, UploadedAt)} &
+$DocumentId \rightarrow$ FamilyId, Title, Description, DocType, FileUrl, UploadedBy, UploadedAt &
+BCNF \\
+
+FamilyStories &
+\texttt{FamilyStories(StoryId, FamilyId, RelatedMemberId, AuthorId, Title, Content, CreatedAt)} &
+$StoryId \rightarrow$ FamilyId, RelatedMemberId, AuthorId, Title, Content, CreatedAt &
+BCNF \\
+
+OutstandingMembers &
+\texttt{OutstandingMembers(AchievementId, MemberId, AchievementTitle, Description, AchievementYear)} &
+$AchievementId \rightarrow$ MemberId, AchievementTitle, Description, AchievementYear &
+BCNF \\
+
+PhotoAlbums &
+\texttt{PhotoAlbums(AlbumId, FamilyId, AlbumName, Description, CreatedBy, CreatedAt)} &
+$AlbumId \rightarrow$ FamilyId, AlbumName, Description, CreatedBy, CreatedAt &
+BCNF \\
+
+AiQueryLogs &
+\texttt{AiQueryLogs(QueryId, UserId, QueryType, QueryText, ResponseText, CreatedAt)} &
+$QueryId \rightarrow$ UserId, QueryType, QueryText, ResponseText, CreatedAt &
+BCNF \\
+
+AiEmbeddings &
+\texttt{AiEmbeddings(EmbeddingId, EntityType, EntityId, EmbeddingVector, ModelVersion, CreatedAt)} &
+$EmbeddingId \rightarrow$ EntityType, EntityId, EmbeddingVector, ModelVersion, CreatedAt; $(EntityType,EntityId)$ là khóa ứng viên phụ &
+BCNF \\
+
+AiRecommendations &
+\texttt{AiRecommendations(RecommendationId, UserId, TargetType, TargetId, Score, Reason, CreatedAt)} &
+$RecommendationId \rightarrow$ UserId, TargetType, TargetId, Score, Reason, CreatedAt &
+BCNF \\
+
+Reports &
+\texttt{Reports(ReportId, FamilyId, ReportType, Parameters, FileUrl, GeneratedBy, GeneratedAt)} &
+$ReportId \rightarrow$ FamilyId, ReportType, Parameters, FileUrl, GeneratedBy, GeneratedAt &
+BCNF \\
+
+AuditLogs &
+\texttt{AuditLogs(LogId, UserId, Action, EntityType, EntityId, OldValue, NewValue, IpAddress, CreatedAt)} &
+$LogId \rightarrow$ UserId, Action, EntityType, EntityId, OldValue, NewValue, IpAddress, CreatedAt &
+BCNF \\
+
+SystemConfigurations &
+\texttt{SystemConfigurations(ConfigId, ConfigKey, ConfigValue, Description, UpdatedBy, UpdatedAt)} &
+$ConfigId \rightarrow$ ConfigKey, ConfigValue, Description, UpdatedBy, UpdatedAt; UNIQUE(ConfigKey) &
+BCNF \\
+
+Backups &
+\texttt{Backups(BackupId, BackupType, FilePath, Status, CreatedAt)} &
+$BackupId \rightarrow$ BackupType, FilePath, Status, CreatedAt &
+BCNF \\
+
+ModerationLogs &
+\texttt{ModerationLogs(ModerationId, ContentType, ContentId, ModeratorId, Action, Reason, CreatedAt)} &
+$ModerationId \rightarrow$ ContentType, ContentId, ModeratorId, Action, Reason, CreatedAt &
+BCNF \\
+
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection*{Nhận xét chung về kết quả chuẩn hóa}
+\addcontentsline{toc}{subsection}{Nhận xét chung về kết quả chuẩn hóa}
+
+Phần lớn thực thể mạnh sử dụng khóa thay thế UUID một cột. Vì vậy, mọi thuộc tính không khóa đều phụ thuộc đầy đủ vào khóa và không tồn tại phụ thuộc bắc cầu giữa các thuộc tính không khóa theo các giả định nghiệp vụ của thiết kế. Các bảng trung gian N:N có khóa ghép trùng với vế trái của phụ thuộc hàm định nghĩa quan hệ, do đó cũng đạt BCNF.
+
+\section{Ràng buộc toàn vẹn (RBTV)}
+
+Bên cạnh các ràng buộc khóa chính và khóa ngoại đã suy ra từ quá trình chuẩn hóa, FamilyConnect còn có các quy tắc nghiệp vụ không thể biểu diễn chỉ bằng PK/FK. Các quy tắc này được phát biểu tường minh dưới dạng ràng buộc toàn vẹn, đồng thời xác định ảnh hưởng đến các thao tác Insert/Delete/Update.
+
+\subsection{Ràng buộc toàn vẹn có bối cảnh là một quan hệ}
+
+\subsubsection*{RB-1/Users --- Ràng buộc miền giá trị}
+
+\textbf{Nội dung:} trạng thái tài khoản chỉ nhận một trong bốn giá trị hợp lệ.
+
+\[
+\forall u\in Users,\quad
+u.Status\in\{\texttt{'active'},\texttt{'inactive'},\texttt{'suspended'},\texttt{'pending'}\}
+\]
+
+\textbf{Bối cảnh:} \texttt{Users}.
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{RB-1} & \textbf{Insert} & \textbf{Delete} & \textbf{Update}\\
+\midrule
+Users & + & - & +\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{RB-2/Events --- Ràng buộc liên thuộc tính}
+
+\textbf{Nội dung:} thời điểm bắt đầu sự kiện phải diễn ra trước thời điểm kết thúc nếu thời điểm kết thúc được khai báo.
+
+\[
+\forall e\in Events,\quad
+(e.EndTime\ IS\ NULL)\lor(e.StartTime\le e.EndTime)
+\]
+
+\textbf{Bối cảnh:} \texttt{Events}.
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{RB-2} & \textbf{Insert} & \textbf{Delete} & \textbf{Update}\\
+\midrule
+Events & + & - & +\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{RB-3/FamilyMembers --- Ràng buộc liên thuộc tính}
+
+\textbf{Nội dung:} thành viên đã mất bắt buộc phải có ngày mất; thành viên còn sống không được có ngày mất.
+
+\[
+\forall m\in FamilyMembers:
+\left(m.IsAlive=0\Rightarrow m.DateOfDeath\ IS\ NOT\ NULL\right)
+\land
+\left(m.IsAlive=1\Rightarrow m.DateOfDeath\ IS\ NULL\right)
+\]
+
+\textbf{Bối cảnh:} \texttt{FamilyMembers}.
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{RB-3} & \textbf{Insert} & \textbf{Delete} & \textbf{Update}\\
+\midrule
+FamilyMembers & + & - & +\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{RB-4/ParentChildRelationships --- Ràng buộc liên bộ, tự tham chiếu}
+
+\textbf{Nội dung:} một thành viên không thể vừa là cha/mẹ vừa là con của chính mình trong cùng một quan hệ.
+
+\[
+\forall r\in ParentChildRelationships,\quad
+r.ParentMemberId\ne r.ChildMemberId
+\]
+
+\textbf{Bối cảnh:} \texttt{ParentChildRelationships}. Ràng buộc này được hiện thực bằng \texttt{CHECK CK\_NotSelfParent} trong script T-SQL.
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{RB-4} & \textbf{Insert} & \textbf{Delete} & \textbf{Update}\\
+\midrule
+ParentChildRelationships & + & - & +\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Ràng buộc toàn vẹn có bối cảnh là nhiều quan hệ}
+
+\subsubsection*{RB-5/EventParticipants, Events, FamilyMembers --- Ràng buộc tham chiếu liên quan hệ}
+
+\textbf{Nội dung:} thành viên được mời tham gia một sự kiện phải thuộc cùng dòng họ với dòng họ tổ chức sự kiện đó.
+
+\[
+\forall p\in EventParticipants,\;
+\exists e\in Events,\;
+\exists m\in FamilyMembers:
+\]
+
+\[
+(e.EventId=p.EventId)
+\land
+(m.MemberId=p.MemberId)
+\land
+(e.FamilyId=m.FamilyId)
+\]
+
+\textbf{Bối cảnh:} \texttt{EventParticipants}, \texttt{Events}, \texttt{FamilyMembers}.
+
+Ràng buộc này không thể biểu diễn bằng khóa ngoại thuần túy trong script hiện tại, do đó cần kiểm tra ở tầng ứng dụng hoặc bằng trigger \texttt{AFTER INSERT/UPDATE} trên \texttt{EventParticipants}.
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Quan hệ} & \textbf{Insert} & \textbf{Delete} & \textbf{Update}\\
+\midrule
+EventParticipants & + & - & +\\
+Events & - & + & +\\
+FamilyMembers & - & + & +\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{RB-6/ParentChildRelationships, FamilyMembers --- Giới hạn số cha/mẹ sinh học}
+
+\textbf{Nội dung:} mỗi thành viên ở vai trò con có tối đa hai quan hệ cha/mẹ loại \texttt{'biological'}.
+
+\[
+\forall c\in FamilyMembers,\quad
+\left|
+\{r\in ParentChildRelationships\mid
+r.ChildMemberId=c.MemberId
+\land r.RelationshipType=\texttt{'biological'}\}
+\right|
+\le 2
+\]
+
+\textbf{Bối cảnh:} \texttt{ParentChildRelationships}, \texttt{FamilyMembers}.
+
+Ràng buộc này không thể enforce bằng PK/FK thuần túy; cần trigger \texttt{AFTER INSERT/UPDATE} trên \texttt{ParentChildRelationships} để đếm số quan hệ và chặn khi vượt quá 2.
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Quan hệ} & \textbf{Insert} & \textbf{Delete} & \textbf{Update}\\
+\midrule
+ParentChildRelationships & + & - & +\\
+FamilyMembers & + & - & +\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{RB-7/MemberVerifications, FamilyMembers, UserRoles --- Quyền xác minh}
+
+\textbf{Nội dung:} người duyệt một yêu cầu xác minh (\texttt{VerifiedBy}) phải có vai trò trong đúng dòng họ của thành viên được xác minh.
+
+\[
+\forall v\in MemberVerifications,\quad
+(v.VerifiedBy\ IS\ NULL)
+\lor
+\exists m\in FamilyMembers,\;
+\exists ur\in UserRoles:
+\]
+
+\[
+(m.MemberId=v.MemberId)
+\land
+(ur.UserId=v.VerifiedBy)
+\land
+(ur.FamilyId=m.FamilyId)
+\]
+
+\textbf{Bối cảnh:} \texttt{MemberVerifications}, \texttt{FamilyMembers}, \texttt{UserRoles}.
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Quan hệ} & \textbf{Insert} & \textbf{Delete} & \textbf{Update}\\
+\midrule
+MemberVerifications & + & - & +\\
+UserRoles & - & + & +\\
+FamilyMembers & - & + & $\pm$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Việc thay đổi \texttt{FamilyId} của thành viên có thể phá vỡ điều kiện $ur.FamilyId=m.FamilyId$, do đó cần kiểm tra khi cập nhật.
+
+\subsubsection*{RB-8/Comments --- Ràng buộc tự tham chiếu}
+
+\textbf{Nội dung:} một bình luận trả lời có \texttt{ParentCommentId} khác NULL phải thuộc cùng bài đăng với bình luận cha.
+
+\[
+\forall c\in Comments,\quad
+(c.ParentCommentId\ IS\ NULL)
+\lor
+\exists p\in Comments:
+(p.CommentId=c.ParentCommentId)
+\land
+(p.PostId=c.PostId)
+\]
+
+\textbf{Bối cảnh:} \texttt{Comments}.
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{RB-8} & \textbf{Insert} & \textbf{Delete} & \textbf{Update}\\
+\midrule
+Comments & + & - & +\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{RB-9/Marriages --- Ràng buộc liên bộ}
+
+\textbf{Nội dung:} hai vợ chồng trong một cuộc hôn nhân phải là hai thành viên khác nhau; tại một thời điểm, một thành viên không được có nhiều hơn một cuộc hôn nhân ở trạng thái \texttt{'married'}.
+
+\[
+\forall m\in Marriages,\quad
+m.Spouse1Id\ne m.Spouse2Id
+\]
+
+và:
+
+\[
+\forall x\in FamilyMembers,\quad
+\left|
+\{m\in Marriages\mid
+(m.Spouse1Id=x.MemberId\lor m.Spouse2Id=x.MemberId)
+\land m.Status=\texttt{'married'}\}
+\right|
+\le 1
+\]
+
+Điều kiện \texttt{Spouse1Id != Spouse2Id} có thể hiện thực bằng \texttt{CHECK CK\_NotSelfMarriage}; điều kiện tối đa một hôn nhân đang hiệu lực cần trigger.
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{RB-9} & \textbf{Insert} & \textbf{Delete} & \textbf{Update}\\
+\midrule
+Marriages & + & - & +\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Bảng tổng hợp các ràng buộc toàn vẹn}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}p{0.24\linewidth}>{\raggedright\arraybackslash}p{0.31\linewidth}X@{}}
+\toprule
+\textbf{Mã} & \textbf{Loại RBTV} & \textbf{Quan hệ liên quan} & \textbf{Cơ chế thực thi đề xuất} \\
+\midrule
+RB-1 & Miền giá trị & Users & CHECK (đã có trong Phụ lục A) \\
+RB-2 & Liên thuộc tính & Events & Cần bổ sung CHECK hoặc trigger \\
+RB-3 & Liên thuộc tính & FamilyMembers & Cần bổ sung CHECK hoặc trigger \\
+RB-4 & Liên bộ (tự tham chiếu) & ParentChildRelationships & CHECK, đã có: CK\_NotSelfParent \\
+RB-5 & Tham chiếu, liên quan hệ & EventParticipants, Events, FamilyMembers & Trigger, chưa có trong Phụ lục A \\
+RB-6 & Liên bộ, liên quan hệ & ParentChildRelationships, FamilyMembers & Trigger, giới hạn tối đa 2 cha/mẹ sinh học \\
+RB-7 & Tham chiếu, liên quan hệ & MemberVerifications, FamilyMembers, UserRoles & Trigger, chưa có trong Phụ lục A \\
+RB-8 & Liên thuộc tính, tự tham chiếu & Comments & Trigger, chưa có trong Phụ lục A \\
+RB-9 & Liên bộ & Marriages & CHECK một phần, đã có CK\_NotSelfMarriage; trigger cho phần còn lại \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection*{Nhận xét về khả năng thực thi RBTV ở tầng vật lý}
+\addcontentsline{toc}{subsection}{Nhận xét về khả năng thực thi RBTV ở tầng vật lý}
+
+Phần lớn ràng buộc trong bối cảnh một quan hệ có thể ánh xạ trực tiếp ở tầng vật lý. Các ràng buộc liên quan đến nhiều quan hệ như RB-5, RB-6, RB-7 và RB-8 cần trigger hoặc kiểm tra ở tầng ứng dụng vì SQL Server không cho phép tham chiếu trực tiếp sang bảng khác.
+
+Trong thiết kế hiện tại, RB-1 và RB-4 đã được thể hiện trong script T-SQL; RB-9 được kiểm tra một phần bằng check Các ràng buộc còn lại được ghi nhận như các điểm cần bổ sung ở tầng vật lý hoặc trong lớp nghiệp vụ của hệ thống.
+
+\section*{Kết luận Chương 3}
+\addcontentsline{toc}{section}{Kết luận Chương 3}
+
+Qua ví dụ phân rã từ Báo Cáo Sự Kiện có thể chứng minh rằng việc tách các phụ thuộc từng phần và phụ thuộc bắc cầu đưa hệ thống từ quan hệ phẳng ban đầu về các quan hệ đạt 3NF và BCNF. Việc kiểm tra bao đóng xác định được khóa ứng viên, trong khi kiểm tra lossless-join xác nhận phép phân rã không làm mất thông tin. Kết quả tổng hợp cho 33 quan hệ của FamilyConnect cho thấy các quan hệ được thiết kế đạt BCNF theo các phụ thuộc hàm và quy tắc nghiệp vụ đã xác định. Đồng thời, chín nhóm ràng buộc toàn vẹn được phát biểu tường minh, làm cơ sở cho việc chuyển sang thiết kế vật lý và triển khai bằng T-SQL ở Chương 4.
