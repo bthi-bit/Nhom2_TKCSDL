@@ -1,55 +1,1043 @@
-\chapter{PHÂN TÍCH YÊU CẦU}
+\hypertarget{chux1b0ux1a1ng-2.-thiux1ebft-kux1ebf-mux1ee9c-quan-niux1ec7m}{%
+\section{\texorpdfstring{\textbf{CHƯƠNG 2. THIẾT KẾ MỨC QUAN NIỆM}}{CHƯƠNG 2. THIẾT KẾ MỨC QUAN NIỆM}}\label{chux1b0ux1a1ng-2.-thiux1ebft-kux1ebf-mux1ee9c-quan-niux1ec7m}}
 
-\section{Xác định ứng viên thực thể}
+\hypertarget{liux1ec7t-kuxea-vuxe0-muxf4-tux1ea3-chux1ee9c-nux103ng-uxfd-nghux129a-cuxe1c-thux1ef1c-thux1ec3}{%
+\subsection{\texorpdfstring{\textbf{2.1. Liệt kê và mô tả chức năng, ý nghĩa các thực thể}}{2.1. Liệt kê và mô tả chức năng, ý nghĩa các thực thể}}\label{liux1ec7t-kuxea-vuxe0-muxf4-tux1ea3-chux1ee9c-nux103ng-uxfd-nghux129a-cuxe1c-thux1ef1c-thux1ec3}}
 
-Từ mô tả nghiệp vụ của đề tài, gạch chân danh từ và động từ quan trọng để rút ra danh sách ứng viên thực thể ban đầu:
+Dựa trên kết quả phân tích yêu cầu ở Chương 1, hệ thống FamilyConnect được tổ chức thành 8 nhóm chức năng, ánh xạ thành đầy đủ 26 thực thể dữ liệu ở mức quan niệm --- mỗi thực thể tương ứng với một đối tượng thông tin độc lập cần được quản lý, kèm theo chức năng nghiệp vụ mà nó phục vụ. Việc gộp/tái sử dụng một số thực thể có quan hệ 1--1 hoặc dữ liệu tổng hợp (nếu cần) sẽ chỉ được cân nhắc ở bước thiết kế mức logic (chuẩn hóa) tại Chương 3, nhằm không làm mất tính đầy đủ của mô hình quan niệm ban đầu.
 
-\begin{center}
-\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X@{}}
-\toprule
-\textbf{Danh từ ứng viên} & \textbf{Diễn giải / ghi chú} \\
-\midrule
-NguoiDung (User) & Tài khoản đăng nhập hệ thống \\
-VaiTro (Role) & Vai trò trong RBAC theo từng gia đình \\
-GiaDinh (Family) & Đơn vị gia phả gốc \\
-ThanhVien (FamilyMember) & Nút trong cây gia phả --- có thể chưa có tài khoản NguoiDung \\
-QuanHeChaCon / HonNhan & Mối kết hợp tự thân trên ThanhVien \\
-BaiViet, BinhLuan & Nội dung cộng đồng \\
-SuKien, ThamGiaSuKien & Sự kiện gia đình và RSVP \\
-HoSoNgheNghiep & Danh bạ / hồ sơ nghề nghiệp thành viên \\
-TaiLieuLichSu & Di sản gia đình: tài liệu, câu chuyện, kho lưu trữ số \\
-NhatKyKiemToan & Nhật ký thao tác phục vụ quản trị \\
-\bottomrule
-\end{tabularx}
-\end{center}
+\hypertarget{nhuxf3m-1-user-security-4-thux1ef1c-thux1ec3}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 1 -- User \& Security (4 thực thể)}}}{Nhóm 1 -- User \& Security (4 thực thể)}}\label{nhuxf3m-1-user-security-4-thux1ef1c-thux1ec3}}
 
-\section{Quy tắc nghiệp vụ (Business Rules)}
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.0736}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2771}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.6494}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thực thể}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Chức năng / Ý nghĩa}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & User (Người dùng) & Đại diện cho một tài khoản sử dụng hệ thống FamilyConnect; phục vụ đăng ký, đăng nhập, xác thực (JWT) và quản lý hồ sơ cá nhân. \\
+2 & Role (Vai trò) & Định nghĩa các vai trò trong hệ thống (Admin, Family Admin, Member\ldots) phục vụ phân quyền theo mô hình Role-Based Access Control (RBAC). \\
+3 & UserRole (Gán vai trò) & Thực thể kết hợp, ghi nhận việc một User được gán một hoặc nhiều Role, cho phép phân quyền linh hoạt. \\
+4 & FamilyMemberVerification (Xác minh thành viên) & Ghi nhận quá trình xác minh một FamilyMember (trạng thái xác minh, người xác minh, thời điểm xác minh) trước khi thành viên được liên kết chính thức với một tài khoản User. \\
+\end{longtable}
 
-Các quy tắc dưới đây quyết định bản số của mối kết hợp ở Chương 3 và phụ thuộc hàm ở Chương 4:
+\hypertarget{nhuxf3m-2-family-genealogy-5-thux1ef1c-thux1ec3}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 2 -- Family \& Genealogy (5 thực thể)}}}{Nhóm 2 -- Family \& Genealogy (5 thực thể)}}\label{nhuxf3m-2-family-genealogy-5-thux1ef1c-thux1ec3}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.0737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.6526}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thực thể}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Chức năng / Ý nghĩa}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & Family (Gia đình/Dòng họ) & Đại diện cho một dòng họ/gia đình lớn --- đơn vị tổ chức cao nhất của cây gia phả, lưu thông tin tổng quát và câu chuyện nguồn gốc. \\
+2 & Branch (Chi/Nhánh) & Đại diện cho một chi/nhánh trong dòng họ, hỗ trợ phân cấp và điều hướng cây gia phả theo từng nhánh nhỏ hơn. \\
+3 & FamilyMember (Thành viên gia đình) & Đại diện cho một cá nhân trong gia phả (có thể còn sống hoặc đã mất); lưu thông tin cá nhân cơ bản và liên kết tùy chọn tới một tài khoản User. \\
+4 & Relationship (Quan hệ huyết thống) & Ghi nhận mối quan hệ cha-mẹ-con/anh-chị-em giữa hai FamilyMember, phục vụ trực quan hóa và truy vấn cây gia phả. \\
+5 & Marriage (Hôn nhân) & Ghi nhận mối quan hệ hôn nhân giữa hai FamilyMember, tách biệt với quan hệ huyết thống do khác bản chất ngữ nghĩa. \\
+\end{longtable}
+
+\hypertarget{nhuxf3m-3-community-4-thux1ef1c-thux1ec3}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 3 -- Community (4 thực thể)}}}{Nhóm 3 -- Community (4 thực thể)}}\label{nhuxf3m-3-community-4-thux1ef1c-thux1ec3}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.0737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.6526}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thực thể}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Chức năng / Ý nghĩa}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & Post (Bài viết/Tin gia đình) & Đại diện cho một bài đăng do thành viên chia sẻ trong phạm vi một gia đình --- tin tức, thông báo, chia sẻ đời sống. \\
+2 & Comment (Bình luận) & Đại diện cho một bình luận của người dùng trên một bài viết. \\
+3 & Reaction (Cảm xúc/Like) & Ghi nhận phản ứng cảm xúc (like, love, haha\ldots) của một User trên một Post; mỗi User chỉ được có một reaction cho mỗi bài. \\
+4 & Photo (Ảnh bài viết) & Ảnh được đính kèm/chia sẻ trong một bài viết của cộng đồng gia đình. \\
+\end{longtable}
+
+\hypertarget{nhuxf3m-4-events-4-thux1ef1c-thux1ec3}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 4 -- Events (4 thực thể)}}}{Nhóm 4 -- Events (4 thực thể)}}\label{nhuxf3m-4-events-4-thux1ef1c-thux1ec3}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.0737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.6526}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thực thể}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Chức năng / Ý nghĩa}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & Event (Sự kiện gia đình) & Đại diện cho một sự kiện được tổ chức trong phạm vi gia đình (giỗ, họp mặt, sinh nhật\ldots). \\
+2 & EventParticipant (RSVP) & Thực thể kết hợp ghi nhận việc một User tham gia/phản hồi (RSVP) cho một Event, cùng trạng thái xác nhận tham dự. \\
+3 & EventGallery (Ảnh sự kiện) & Thư viện ảnh gắn với một sự kiện cụ thể, cho phép thành viên xem lại hình ảnh của sự kiện đã diễn ra. \\
+4 & EventReminder (Nhắc nhở sự kiện) & Ghi nhận lịch nhắc nhở gửi tới một User về một Event cụ thể, kèm phương thức và trạng thái gửi. \\
+\end{longtable}
+
+\hypertarget{nhuxf3m-5-family-directory-1-thux1ef1c-thux1ec3}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 5 -- Family Directory (1 thực thể)}}}{Nhóm 5 -- Family Directory (1 thực thể)}}\label{nhuxf3m-5-family-directory-1-thux1ef1c-thux1ec3}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.0737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.6526}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thực thể}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Chức năng / Ý nghĩa}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & MemberProfile (Hồ sơ nghề nghiệp/học vấn) & Lưu thông tin nghề nghiệp, học vấn, nơi sinh sống và thế hệ của một FamilyMember, phục vụ tra cứu danh bạ gia đình theo nghề nghiệp/vị trí/thế hệ. \\
+\end{longtable}
+
+\hypertarget{nhuxf3m-6-family-heritage-3-thux1ef1c-thux1ec3}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 6 -- Family Heritage (3 thực thể)}}}{Nhóm 6 -- Family Heritage (3 thực thể)}}\label{nhuxf3m-6-family-heritage-3-thux1ef1c-thux1ec3}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.0737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.6526}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thực thể}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Chức năng / Ý nghĩa}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & HistoricalDocument (Tài liệu lịch sử) & Đại diện cho một tài liệu lịch sử hoặc hồ sơ về thành viên tiêu biểu của dòng họ. \\
+2 & FamilyStory (Câu chuyện gia đình) & Lưu trữ các câu chuyện, ký ức được thành viên đóng góp và kể lại cho các thế hệ sau. \\
+3 & Archive (Lưu trữ số) & Lưu trữ số các tư liệu, hiện vật của gia đình (hình ảnh, văn bản, video\ldots) dưới dạng tệp số hóa. \\
+\end{longtable}
+
+\hypertarget{nhuxf3m-7-ai-assisted-services-2-thux1ef1c-thux1ec3}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 7 -- AI-assisted Services (2 thực thể)}}}{Nhóm 7 -- AI-assisted Services (2 thực thể)}}\label{nhuxf3m-7-ai-assisted-services-2-thux1ef1c-thux1ec3}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.0737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.6526}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thực thể}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Chức năng / Ý nghĩa}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & AIQueryLog (Nhật ký truy vấn AI) & Ghi nhận mỗi lượt truy vấn AI của người dùng (tìm kiếm ngữ nghĩa, trợ lý tri thức, tóm tắt nội dung, giải thích quan hệ) cùng nội dung phản hồi tóm tắt. \\
+2 & AIRecommendation (Gợi ý AI) & Ghi nhận các gợi ý do AI sinh ra cho một User, hướng tới nhiều loại đối tượng khác nhau (thành viên, bài viết, tài liệu) thông qua khóa đa hình, kèm điểm số mức độ liên quan. \\
+\end{longtable}
+
+\hypertarget{nhuxf3m-8-dashboard-administration-3-thux1ef1c-thux1ec3}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 8 -- Dashboard \& Administration (3 thực thể)}}}{Nhóm 8 -- Dashboard \& Administration (3 thực thể)}}\label{nhuxf3m-8-dashboard-administration-3-thux1ef1c-thux1ec3}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.0737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2737}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.6526}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thực thể}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Chức năng / Ý nghĩa}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & AuditLog (Nhật ký hệ thống) & Ghi nhận mọi thao tác quan trọng của người dùng/hệ thống lên dữ liệu (tạo, sửa, xóa) phục vụ kiểm duyệt nội dung và bảo mật; là bảng chỉ-ghi (append-only). \\
+2 & Report (Báo cáo thống kê) & Đại diện cho một báo cáo thống kê (về gia đình, cộng đồng, sự kiện\ldots) được tạo ra và có thể xuất ra tệp (PDF/Excel) để lưu trữ. \\
+3 & SystemConfig (Cấu hình hệ thống) & Lưu các tham số cấu hình vận hành của hệ thống dưới dạng cặp khóa--giá trị, phục vụ quản trị hệ thống. \\
+\end{longtable}
+
+\hypertarget{thuux1ed9c-tuxednh-cux1ee7a-cuxe1c-thux1ef1c-thux1ec3}{%
+\subsection{\texorpdfstring{\textbf{2.2. Thuộc tính của các thực thể}}{2.2. Thuộc tính của các thực thể}}\label{thuux1ed9c-tuxednh-cux1ee7a-cuxe1c-thux1ef1c-thux1ec3}}
+
+Phần này trình bày chi tiết thuộc tính của đầy đủ 26 thực thể được hình thành ở mức quan niệm. Mỗi thực thể được mô tả gồm: tên thuộc tính, ý nghĩa/mô tả và ràng buộc (khóa chính, khóa ngoại, miền giá trị, ràng buộc NOT NULL/UNIQUE\ldots).
+
+\textbf{1. USER (Người dùng)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+user\_id & Định danh duy nhất của người dùng & Khóa chính (PK), NOT NULL \\
+full\_name & Họ và tên đầy đủ & NOT NULL \\
+email & Địa chỉ email dùng để đăng nhập & NOT NULL, UNIQUE \\
+phone & Số điện thoại liên hệ & Có thể NULL \\
+password\_hash & Mật khẩu đã được mã hóa (hash) & NOT NULL \\
+avatar & Đường dẫn (URL) ảnh đại diện & Có thể NULL \\
+status & Trạng thái tài khoản & NOT NULL, DEFAULT \textquotesingle active\textquotesingle; miền giá trị \{active, inactive, banned\} \\
+created\_at & Thời điểm tạo tài khoản & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{2. ROLE (Vai trò)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+role\_id & Định danh duy nhất của vai trò & Khóa chính (PK), NOT NULL \\
+role\_name & Tên vai trò (Admin, Family Admin, Member\ldots) & NOT NULL, UNIQUE \\
+description & Mô tả ý nghĩa/quyền hạn của vai trò & Có thể NULL \\
+\end{longtable}
+
+\textbf{3. USER\_ROLE (Gán vai trò cho người dùng)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+user\_id & Người dùng được gán vai trò & Khóa chính kép (PK), khóa ngoại (FK) tham chiếu USER \\
+role\_id & Vai trò được gán & Khóa chính kép (PK), khóa ngoại (FK) tham chiếu ROLE \\
+\end{longtable}
+
+\textbf{4. FAMILY\_MEMBER\_VERIFICATION (Xác minh thành viên)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+member\_id & Thành viên gia đình cần xác minh & Khóa chính (PK), khóa ngoại (FK) tham chiếu FAMILY\_MEMBER; quan hệ 1--1 \\
+verification\_status & Trạng thái xác minh & NOT NULL, DEFAULT \textquotesingle pending\textquotesingle; miền giá trị \{pending, verified, rejected\} \\
+verified\_by & Người thực hiện xác minh & Khóa ngoại (FK) tham chiếu USER; có thể NULL \\
+verified\_at & Thời điểm xác minh & Có thể NULL \\
+\end{longtable}
+
+\textbf{5. FAMILY (Gia đình/Dòng họ)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+family\_id & Định danh duy nhất của dòng họ & Khóa chính (PK), NOT NULL \\
+family\_name & Tên dòng họ/gia đình & NOT NULL \\
+origin\_story & Câu chuyện/nguồn gốc hình thành dòng họ & Có thể NULL \\
+created\_by & Người khởi tạo hồ sơ dòng họ & Khóa ngoại (FK) tham chiếu USER \\
+created\_at & Thời điểm tạo hồ sơ & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{6. BRANCH (Chi/Nhánh)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+branch\_id & Định danh duy nhất của chi/nhánh & Khóa chính (PK), NOT NULL \\
+branch\_name & Tên chi/nhánh & NOT NULL \\
+family\_id & Dòng họ mà chi/nhánh trực thuộc & NOT NULL, khóa ngoại (FK) tham chiếu FAMILY \\
+parent\_branch\_id & Chi/nhánh cấp trên (nếu có) & Khóa ngoại (FK) tự tham chiếu BRANCH; có thể NULL (chi gốc) \\
+\end{longtable}
+
+\textbf{7. FAMILY\_MEMBER (Thành viên gia đình)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+member\_id & Định danh duy nhất của thành viên & Khóa chính (PK), NOT NULL \\
+full\_name & Họ tên đầy đủ của thành viên & NOT NULL \\
+birth\_date & Ngày sinh & Có thể NULL \\
+death\_date & Ngày mất (nếu đã mất) & Có thể NULL \\
+gender & Giới tính & Có thể NULL \\
+family\_id & Dòng họ mà thành viên thuộc về & NOT NULL, khóa ngoại (FK) tham chiếu FAMILY \\
+branch\_id & Chi/nhánh mà thành viên thuộc về & Khóa ngoại (FK) tham chiếu BRANCH; có thể NULL \\
+user\_id & Tài khoản User liên kết (nếu thành viên có tài khoản) & Khóa ngoại (FK) tham chiếu USER; có thể NULL, quan hệ 0..1 \\
+\end{longtable}
+
+\textbf{8. RELATIONSHIP (Quan hệ huyết thống)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+rel\_id & Định danh duy nhất của bản ghi quan hệ & Khóa chính (PK), NOT NULL \\
+member\_id\_a & Thành viên thứ nhất trong quan hệ & NOT NULL, khóa ngoại (FK) tham chiếu FAMILY\_MEMBER \\
+member\_id\_b & Thành viên thứ hai trong quan hệ & NOT NULL, khóa ngoại (FK) tham chiếu FAMILY\_MEMBER \\
+relation\_type & Loại quan hệ huyết thống & NOT NULL; miền giá trị \{parent, child, sibling\} \\
+& Ràng buộc nghiệp vụ bổ sung & member\_id\_a ≠ member\_id\_b (không tự liên kết một thành viên với chính họ) \\
+\end{longtable}
+
+\textbf{9. MARRIAGE (Hôn nhân)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+marriage\_id & Định danh duy nhất của bản ghi hôn nhân & Khóa chính (PK), NOT NULL \\
+member\_id\_1 & Thành viên thứ nhất trong cuộc hôn nhân & NOT NULL, khóa ngoại (FK) tham chiếu FAMILY\_MEMBER \\
+member\_id\_2 & Thành viên thứ hai trong cuộc hôn nhân & NOT NULL, khóa ngoại (FK) tham chiếu FAMILY\_MEMBER \\
+marriage\_date & Ngày kết hôn & Có thể NULL \\
+status & Trạng thái hôn nhân & Miền giá trị \{married, divorced, widowed\} \\
+\end{longtable}
+
+\textbf{10. POST (Bài viết/Tin gia đình)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+post\_id & Định danh duy nhất của bài viết & Khóa chính (PK), NOT NULL \\
+author\_id & Người đăng bài & NOT NULL, khóa ngoại (FK) tham chiếu USER \\
+family\_id & Dòng họ mà bài viết thuộc về & NOT NULL, khóa ngoại (FK) tham chiếu FAMILY \\
+content & Nội dung bài viết & NOT NULL \\
+created\_at & Thời điểm đăng bài & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{11. COMMENT (Bình luận)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+comment\_id & Định danh duy nhất của bình luận & Khóa chính (PK), NOT NULL \\
+post\_id & Bài viết được bình luận & NOT NULL, khóa ngoại (FK) tham chiếu POST \\
+user\_id & Người bình luận & NOT NULL, khóa ngoại (FK) tham chiếu USER \\
+content & Nội dung bình luận & NOT NULL \\
+created\_at & Thời điểm bình luận & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{12. REACTION (Cảm xúc/Like)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+reaction\_id & Định danh duy nhất của reaction & Khóa chính (PK), NOT NULL \\
+post\_id & Bài viết được thả cảm xúc & NOT NULL, khóa ngoại (FK) tham chiếu POST \\
+user\_id & Người thả cảm xúc & NOT NULL, khóa ngoại (FK) tham chiếu USER \\
+reaction\_type & Loại cảm xúc (like, love, haha\ldots) & NOT NULL \\
+& Ràng buộc nghiệp vụ bổ sung & UNIQUE(post\_id, user\_id) --- mỗi người dùng chỉ có 1 reaction/bài viết \\
+\end{longtable}
+
+\textbf{13. PHOTO (Ảnh bài viết)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+photo\_id & Định danh duy nhất của ảnh & Khóa chính (PK), NOT NULL \\
+post\_id & Bài viết chứa ảnh & NOT NULL, khóa ngoại (FK) tham chiếu POST \\
+url & Đường dẫn lưu trữ ảnh & NOT NULL \\
+uploaded\_by & Người tải ảnh lên & Khóa ngoại (FK) tham chiếu USER \\
+uploaded\_at & Thời điểm tải ảnh lên & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{14. EVENT (Sự kiện gia đình)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+event\_id & Định danh duy nhất của sự kiện & Khóa chính (PK), NOT NULL \\
+family\_id & Dòng họ tổ chức sự kiện & NOT NULL, khóa ngoại (FK) tham chiếu FAMILY \\
+title & Tên sự kiện & NOT NULL \\
+description & Mô tả chi tiết sự kiện & Có thể NULL \\
+start\_time & Thời gian bắt đầu sự kiện & Có thể NULL \\
+location & Địa điểm tổ chức & Có thể NULL \\
+created\_by & Người tạo sự kiện & NOT NULL, khóa ngoại (FK) tham chiếu USER \\
+\end{longtable}
+
+\textbf{15. EVENT\_PARTICIPANT (RSVP)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+event\_id & Sự kiện được phản hồi tham gia & Khóa chính kép (PK), khóa ngoại (FK) tham chiếu EVENT \\
+user\_id & Người phản hồi tham gia & Khóa chính kép (PK), khóa ngoại (FK) tham chiếu USER \\
+rsvp\_status & Trạng thái xác nhận tham dự & DEFAULT \textquotesingle maybe\textquotesingle; miền giá trị \{yes, no, maybe\} \\
+\end{longtable}
+
+\textbf{16. EVENT\_GALLERY (Ảnh sự kiện)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+gallery\_id & Định danh duy nhất của ảnh sự kiện & Khóa chính (PK), NOT NULL \\
+event\_id & Sự kiện chứa ảnh & NOT NULL, khóa ngoại (FK) tham chiếu EVENT \\
+url & Đường dẫn lưu trữ ảnh & NOT NULL \\
+uploaded\_by & Người tải ảnh lên & Khóa ngoại (FK) tham chiếu USER \\
+uploaded\_at & Thời điểm tải ảnh lên & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{17. EVENT\_REMINDER (Nhắc nhở sự kiện)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+reminder\_id & Định danh duy nhất của lịch nhắc & Khóa chính (PK), NOT NULL \\
+event\_id & Sự kiện cần nhắc nhở & NOT NULL, khóa ngoại (FK) tham chiếu EVENT \\
+user\_id & Người nhận nhắc nhở & NOT NULL, khóa ngoại (FK) tham chiếu USER \\
+remind\_at & Thời điểm gửi nhắc nhở & NOT NULL \\
+method & Phương thức gửi nhắc nhở & DEFAULT \textquotesingle push\textquotesingle; miền giá trị \{push, email, sms\} \\
+status & Trạng thái gửi nhắc nhở & DEFAULT \textquotesingle pending\textquotesingle; miền giá trị \{pending, sent\} \\
+\end{longtable}
+
+\textbf{18. MEMBER\_PROFILE (Hồ sơ nghề nghiệp/học vấn)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+member\_id & Thành viên gia đình sở hữu hồ sơ & Khóa chính (PK), khóa ngoại (FK) tham chiếu FAMILY\_MEMBER; quan hệ 1--1 \\
+occupation & Nghề nghiệp hiện tại & Có thể NULL \\
+education\_level & Trình độ học vấn & Có thể NULL \\
+location & Nơi sinh sống hiện tại & Có thể NULL \\
+generation\_level & Thứ tự thế hệ trong dòng họ & Có thể NULL \\
+\end{longtable}
+
+\textbf{19. HISTORICAL\_DOCUMENT (Tài liệu lịch sử)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+doc\_id & Định danh duy nhất của tài liệu & Khóa chính (PK), NOT NULL \\
+family\_id & Dòng họ sở hữu tài liệu & NOT NULL, khóa ngoại (FK) tham chiếu FAMILY \\
+title & Tiêu đề tài liệu & NOT NULL \\
+description & Mô tả/nội dung tóm tắt & Có thể NULL \\
+file\_url & Đường dẫn tệp đính kèm & Có thể NULL \\
+category & Phân loại tài liệu & NOT NULL; miền giá trị \{document, notable\_member\} \\
+created\_at & Thời điểm tạo bản ghi & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{20. FAMILY\_STORY (Câu chuyện gia đình)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+story\_id & Định danh duy nhất của câu chuyện & Khóa chính (PK), NOT NULL \\
+family\_id & Dòng họ mà câu chuyện thuộc về & NOT NULL, khóa ngoại (FK) tham chiếu FAMILY \\
+title & Tiêu đề câu chuyện & NOT NULL \\
+content & Nội dung câu chuyện & Có thể NULL \\
+author\_id & Người kể/đóng góp câu chuyện & Khóa ngoại (FK) tham chiếu USER; có thể NULL \\
+created\_at & Thời điểm đăng câu chuyện & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{21. ARCHIVE (Lưu trữ số)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+archive\_id & Định danh duy nhất của tư liệu lưu trữ & Khóa chính (PK), NOT NULL \\
+family\_id & Dòng họ sở hữu tư liệu & NOT NULL, khóa ngoại (FK) tham chiếu FAMILY \\
+title & Tên/tiêu đề tư liệu & NOT NULL \\
+file\_url & Đường dẫn tệp số hóa & NOT NULL \\
+description & Mô tả tư liệu & Có thể NULL \\
+created\_at & Thời điểm lưu trữ & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{22. AI\_QUERY\_LOG (Nhật ký truy vấn AI)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+log\_id & Định danh duy nhất của bản ghi log & Khóa chính (PK), NOT NULL \\
+user\_id & Người thực hiện truy vấn & NOT NULL, khóa ngoại (FK) tham chiếu USER \\
+query\_text & Nội dung câu truy vấn & NOT NULL \\
+query\_type & Loại truy vấn AI & NOT NULL; miền giá trị \{search, assistant, summarization, relationship\_explain\} \\
+response\_summary & Tóm tắt nội dung phản hồi của AI & Có thể NULL \\
+created\_at & Thời điểm truy vấn & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{23. AI\_RECOMMENDATION (Gợi ý AI)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+rec\_id & Định danh duy nhất của gợi ý & Khóa chính (PK), NOT NULL \\
+user\_id & Người nhận gợi ý & NOT NULL, khóa ngoại (FK) tham chiếu USER \\
+target\_type & Loại đối tượng được gợi ý (khóa đa hình) & NOT NULL; miền giá trị \{member, post, document\} \\
+target\_id & Định danh đối tượng được gợi ý (khóa đa hình) & NOT NULL (không ràng buộc FK cứng do đa hình) \\
+score & Điểm số phản ánh mức độ liên quan & Có thể NULL \\
+reason & Lý do/giải thích gợi ý & Có thể NULL \\
+created\_at & Thời điểm sinh gợi ý & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{24. AUDIT\_LOG (Nhật ký hệ thống)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+log\_id & Định danh duy nhất của bản ghi nhật ký & Khóa chính (PK), NOT NULL \\
+user\_id & Người thực hiện thao tác & Khóa ngoại (FK) tham chiếu USER; có thể NULL (thao tác hệ thống tự động) \\
+action & Hành động được thực hiện (create/update/delete\ldots) & NOT NULL \\
+target\_table & Bảng dữ liệu bị tác động & Có thể NULL \\
+target\_id & Định danh bản ghi bị tác động & Có thể NULL \\
+created\_at & Thời điểm ghi nhận & NOT NULL, DEFAULT thời điểm hiện tại \\
+& Ràng buộc nghiệp vụ bổ sung & Bảng chỉ-ghi (append-only): không cho phép UPDATE/DELETE \\
+\end{longtable}
+
+\textbf{25. REPORT (Báo cáo thống kê)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+report\_id & Định danh duy nhất của báo cáo & Khóa chính (PK), NOT NULL \\
+report\_type & Loại báo cáo (thống kê gia đình, cộng đồng, sự kiện\ldots) & NOT NULL \\
+file\_url & Đường dẫn tệp báo cáo đã xuất (PDF/Excel), nếu có & Có thể NULL \\
+generated\_by & Người tạo/yêu cầu báo cáo & Khóa ngoại (FK) tham chiếu USER; có thể NULL \\
+generated\_at & Thời điểm tạo báo cáo & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\textbf{26. SYSTEM\_CONFIG (Cấu hình hệ thống)}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2316}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4211}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3474}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Thuộc tính}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mô tả}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+config\_key & Khóa định danh tham số cấu hình & Khóa chính (PK), NOT NULL \\
+config\_value & Giá trị của tham số cấu hình & NOT NULL \\
+description & Mô tả ý nghĩa tham số & Có thể NULL \\
+updated\_by & Người cập nhật gần nhất & Khóa ngoại (FK) tham chiếu USER; có thể NULL \\
+updated\_at & Thời điểm cập nhật gần nhất & NOT NULL, DEFAULT thời điểm hiện tại \\
+\end{longtable}
+
+\hypertarget{xuxe1c-ux111ux1ecbnh-cuxe1c-mux1ed1i-quan-hux1ec7-giux1eefa-cuxe1c-thux1ef1c-thux1ec3}{%
+\subsection{\texorpdfstring{\textbf{2.3. Xác định các mối quan hệ giữa các thực thể}}{2.3. Xác định các mối quan hệ giữa các thực thể}}\label{xuxe1c-ux111ux1ecbnh-cuxe1c-mux1ed1i-quan-hux1ec7-giux1eefa-cuxe1c-thux1ef1c-thux1ec3}}
+
+Bảng dưới đây tổng hợp các mối quan hệ giữa các thực thể trong mô hình quan niệm, bao gồm cả các mối quan hệ trực tiếp (1--N, 1--0..1) và các mối quan hệ nhiều-nhiều (N--N) được chuẩn hóa thông qua thực thể kết hợp (UserRole, EventParticipant) hoặc thực thể quan hệ mang thuộc tính riêng (Relationship, Marriage).
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.0622}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2659}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1609}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.5110}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mối quan hệ}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Bản số (Cardinality)}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Diễn giải ý nghĩa}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & User -- UserRole & 1 --- N & Một User có thể được gán nhiều vai trò. \\
+2 & Role -- UserRole & 1 --- N & Một Role có thể được gán cho nhiều User. \\
+3 & FamilyMember -- FamilyMemberVerification & 1 --- 1 & Mỗi thành viên gia đình có tối đa một hồ sơ xác minh tương ứng. \\
+4 & User -- FamilyMemberVerification (verified\_by) & 1 --- N & Một User (có quyền xác minh) có thể xác minh nhiều thành viên. \\
+5 & User -- FamilyMember & 1 --- 0..1 & Một User liên kết với tối đa 1 hồ sơ FamilyMember đại diện cho chính họ trong gia phả. \\
+6 & Family -- Branch & 1 --- N & Một dòng họ có thể có nhiều chi/nhánh. \\
+7 & Branch -- Branch & 1 --- N (đệ quy) & Một chi có thể có nhiều chi con (phân cấp nhiều tầng qua parent\_branch\_id). \\
+8 & Family -- FamilyMember & 1 --- N & Một dòng họ có nhiều thành viên. \\
+9 & Branch -- FamilyMember & 1 --- N & Một chi/nhánh có nhiều thành viên trực thuộc. \\
+10 & FamilyMember -- FamilyMember (qua Relationship) & N --- N (phản thân) & Ghi nhận quan hệ cha-mẹ-con/anh-chị-em giữa các thành viên. \\
+11 & FamilyMember -- FamilyMember (qua Marriage) & N --- N (phản thân) & Ghi nhận quan hệ hôn nhân giữa các thành viên. \\
+12 & User -- Post & 1 --- N & Một User có thể đăng nhiều bài viết. \\
+13 & Family -- Post & 1 --- N & Một dòng họ có nhiều bài viết trong không gian cộng đồng. \\
+14 & Post -- Comment & 1 --- N & Một bài viết có nhiều bình luận. \\
+15 & User -- Comment & 1 --- N & Một User có thể bình luận nhiều lần trên nhiều bài viết. \\
+16 & Post -- Reaction & 1 --- N & Một bài viết có thể nhận nhiều reaction. \\
+17 & User -- Reaction & 1 --- N & Một User có thể thả reaction trên nhiều bài viết (nhưng chỉ 1 lần/bài). \\
+18 & Post -- Photo & 1 --- N & Một bài viết có thể có nhiều ảnh đính kèm. \\
+19 & User -- Photo (uploaded\_by) & 1 --- N & Một User có thể tải lên nhiều ảnh. \\
+20 & Family -- Event & 1 --- N & Một dòng họ có thể tổ chức nhiều sự kiện. \\
+21 & User -- Event (created\_by) & 1 --- N & Một User có thể tạo nhiều sự kiện. \\
+22 & Event -- EventParticipant -- User & N --- N & Một sự kiện có nhiều người tham gia; một User có thể tham gia nhiều sự kiện, thông qua bảng kết hợp EventParticipant. \\
+23 & Event -- EventGallery & 1 --- N & Một sự kiện có thể có nhiều ảnh trong thư viện ảnh sự kiện. \\
+24 & User -- EventGallery (uploaded\_by) & 1 --- N & Một User có thể tải lên nhiều ảnh sự kiện. \\
+25 & Event -- EventReminder & 1 --- N & Một sự kiện có thể có nhiều lịch nhắc nhở. \\
+26 & User -- EventReminder & 1 --- N & Một User có thể nhận nhiều nhắc nhở sự kiện. \\
+27 & FamilyMember -- MemberProfile & 1 --- 1 & Mỗi thành viên gia đình có tối đa một hồ sơ nghề nghiệp/học vấn tương ứng. \\
+28 & Family -- HistoricalDocument & 1 --- N & Một dòng họ có thể có nhiều tài liệu lịch sử. \\
+29 & Family -- FamilyStory & 1 --- N & Một dòng họ có thể có nhiều câu chuyện gia đình. \\
+30 & User -- FamilyStory (author\_id) & 1 --- N & Một User có thể đóng góp/kể lại nhiều câu chuyện gia đình. \\
+31 & Family -- Archive & 1 --- N & Một dòng họ có thể có nhiều tư liệu lưu trữ số. \\
+32 & User -- AIQueryLog & 1 --- N & Một User có thể thực hiện nhiều truy vấn AI. \\
+33 & User -- AIRecommendation & 1 --- N & Một User có thể nhận nhiều gợi ý từ AI. \\
+34 & User -- AuditLog & 1 --- N & Một User có thể thực hiện nhiều thao tác được ghi nhật ký. \\
+35 & User -- Report (generated\_by) & 1 --- N & Một User có thể tạo/yêu cầu nhiều báo cáo thống kê. \\
+36 & User -- SystemConfig (updated\_by) & 1 --- N & Một User (quản trị) có thể cập nhật nhiều tham số cấu hình. \\
+\end{longtable}
+
+Ghi chú: thực thể AIRecommendation sử dụng khóa đa hình (target\_type/target\_id) để gợi ý nhiều loại đối tượng khác nhau (thành viên, bài viết, tài liệu), do đó mối quan hệ với thực thể đích không được ràng buộc bằng khóa ngoại vật lý cứng, mà được kiểm soát bằng ràng buộc miền giá trị (CHECK) kết hợp xử lý ở tầng ứng dụng. Các mối quan hệ 1--1 (FamilyMember--FamilyMemberVerification, FamilyMember--MemberProfile) là các trường hợp sẽ được cân nhắc gộp lại ở bước thiết kế mức logic (Chương 3) nhằm giảm JOIN không cần thiết khi triển khai vật lý.
+
+\hypertarget{business-rules-cux1ee7a-cuxe1c-nhuxf3m-thux1ef1c-thux1ec3}{%
+\subsection{\texorpdfstring{\textbf{2.4. Business rules của các nhóm thực thể}}{2.4. Business rules của các nhóm thực thể}}\label{business-rules-cux1ee7a-cuxe1c-nhuxf3m-thux1ef1c-thux1ec3}}
+
+Bên cạnh các ràng buộc toàn vẹn dữ liệu (PK, FK, UNIQUE, NOT NULL) đã thể hiện ở mục 2.2, hệ thống còn cần tuân thủ một số quy tắc nghiệp vụ (business rules) đặc thù cho từng nhóm chức năng như sau:
+
+\hypertarget{nhuxf3m-1-user-security}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 1 -- User \& Security}}}{Nhóm 1 -- User \& Security}}\label{nhuxf3m-1-user-security}}
 
 \begin{itemize}
-  \item Một GiaDinh có nhiều ThanhVien; mỗi ThanhVien thuộc đúng một GiaDinh gốc (bắt buộc).
-  \item Một ThanhVien có tối đa hai cha/mẹ trực tiếp; quan hệ cha--con là mối kết hợp tự thân trên ThanhVien.
-  \item Hai ThanhVien có thể có nhiều lần HonNhan theo thời gian (ràng buộc không chồng lấp thời gian cần xử lý ở tầng ứng dụng/trigger, không biểu diễn được thuần bằng ERD).
-  \item Một NguoiDung có 0 hoặc 1 ThanhVien liên kết; một ThanhVien có 0 hoặc 1 NguoiDung liên kết (1:1 tùy chọn hai chiều).
-  \item Một BaiViet thuộc một NguoiDung (người đăng) và một GiaDinh; có thể có nhiều BinhLuan.
-  \item BinhLuan chỉ tồn tại khi BaiViet tồn tại → thực thể yếu.
-  \item Một SuKien có nhiều NguoiThamGia thông qua RSVP; mỗi RSVP có trạng thái (đã xác nhận / từ chối / chờ).
-  \item Một NguoiDung có thể giữ nhiều VaiTro nhưng theo từng GiaDinh cụ thể (RBAC theo ngữ cảnh, không phải toàn cục).
-  \item Mọi thao tác tạo/sửa/xóa có ý nghĩa nghiệp vụ (ThanhVien, BaiViet, PhanQuyen...) được ghi vào NhatKyKiemToan phục vụ audit; maND trong log có thể NULL nếu hành động do tiến trình hệ thống tự động thực hiện (không phải người dùng).
+\item
+  Mỗi User phải có địa chỉ email duy nhất, dùng làm định danh đăng nhập.
+\item
+  Mật khẩu phải được lưu trữ dưới dạng đã mã hóa (hash), tuyệt đối không lưu ở dạng văn bản thuần.
+\item
+  Một User có thể được gán nhiều Role (thông qua UserRole) để hỗ trợ phân quyền linh hoạt theo mô hình RBAC.
+\item
+  Một User chỉ được liên kết với tối đa một FamilyMember (quan hệ 0..1), đại diện cho chính người dùng đó trong cây gia phả.
+\item
+  Mỗi FamilyMember chỉ có tối đa một hồ sơ FamilyMemberVerification tương ứng; FamilyMember chỉ được liên kết chính thức với một tài khoản User sau khi FamilyMemberVerification ghi nhận verification\_status = \textquotesingle verified\textquotesingle.
 \end{itemize}
 
-\section{Bảng đặc tả input -- output của giai đoạn phân tích}
+\hypertarget{nhuxf3m-2-family-genealogy}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 2 -- Family \& Genealogy}}}{Nhóm 2 -- Family \& Genealogy}}\label{nhuxf3m-2-family-genealogy}}
 
-\begin{center}
-\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X@{}}
-\toprule
-\textbf{Hạng mục} & \textbf{Nội dung} \\
-\midrule
-Input & Mô tả bối cảnh, giải pháp và yêu cầu chức năng của đề tài FamilyConnect \\
-Xử lý & Gạch chân danh từ/động từ, phỏng vấn giả định, rút quy tắc nghiệp vụ \\
-Output & Danh sách thực thể ứng viên + bảng quy tắc nghiệp vụ (mục 2.1, 2.2) --- là input cho Chương 3 \\
-\bottomrule
-\end{tabularx}
-\end{center}
+\begin{itemize}
+\item
+  Mỗi FamilyMember bắt buộc phải thuộc về đúng một Family; có thể thuộc hoặc không thuộc một Branch cụ thể.
+\item
+  Một Branch có thể có nhiều Branch con thông qua parent\_branch\_id, nhưng không được hình thành vòng lặp phân cấp (một chi không thể vừa là tổ tiên vừa là hậu duệ của chính nó).
+\item
+  Một bản ghi Relationship không được tự liên kết một thành viên với chính họ (member\_id\_a ≠ member\_id\_b).
+\item
+  Quan hệ huyết thống (Relationship) và quan hệ hôn nhân (Marriage) được quản lý tách biệt do khác bản chất ngữ nghĩa, dù cùng liên kết hai FamilyMember.
+\item
+  Một FamilyMember có thể có nhiều bản ghi Marriage theo thời gian (ly hôn, tái hôn\ldots), nhưng tại một thời điểm chỉ nên có tối đa một hôn nhân ở trạng thái \textquotesingle married\textquotesingle{} --- ràng buộc này được kiểm soát ở tầng ứng dụng.
+\end{itemize}
+
+\hypertarget{nhuxf3m-3-community}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 3 -- Community}}}{Nhóm 3 -- Community}}\label{nhuxf3m-3-community}}
+
+\begin{itemize}
+\item
+  Mỗi Post phải thuộc về một Family cụ thể và có đúng một tác giả (author).
+\item
+  Mỗi User chỉ được thả một Reaction cho mỗi Post (ràng buộc duy nhất trên cặp post\_id, user\_id).
+\item
+  Mỗi Comment phải gắn với một Post và một User xác định, không tồn tại bình luận \textquotesingle mồ côi\textquotesingle.
+\item
+  Mỗi Photo phải gắn với đúng một Post; không tồn tại ảnh không có bài viết sở hữu.
+\end{itemize}
+
+\hypertarget{nhuxf3m-4-events}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 4 -- Events}}}{Nhóm 4 -- Events}}\label{nhuxf3m-4-events}}
+
+\begin{itemize}
+\item
+  Mỗi Event phải thuộc về một Family và có một người tạo (created\_by) xác định.
+\item
+  Một User có thể RSVP cho nhiều Event và một Event có thể có nhiều người tham gia, được quản lý qua bảng kết hợp EventParticipant với trạng thái rsvp\_status (yes/no/maybe).
+\item
+  EventReminder chỉ nên được tạo cho User đã có liên hệ với Event tương ứng (ví dụ: đã RSVP hoặc là thành viên gia đình liên quan) --- đây là ràng buộc nghiệp vụ xử lý ở tầng ứng dụng.
+\item
+  Mỗi ảnh trong EventGallery phải gắn với đúng một Event; đây là thực thể độc lập với Photo (ảnh bài viết) dù có cấu trúc tương tự.
+\end{itemize}
+
+\hypertarget{nhuxf3m-5-family-directory}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 5 -- Family Directory}}}{Nhóm 5 -- Family Directory}}\label{nhuxf3m-5-family-directory}}
+
+\begin{itemize}
+\item
+  Mỗi FamilyMember có tối đa một MemberProfile tương ứng (quan hệ 1--1), lưu thông tin nghề nghiệp, học vấn, nơi ở và thế hệ.
+\item
+  Việc tìm kiếm thành viên theo nghề nghiệp, vị trí địa lý hoặc thế hệ phải dựa trên các thuộc tính của MemberProfile kết hợp JOIN với FamilyMember.
+\end{itemize}
+
+\hypertarget{nhuxf3m-6-family-heritage}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 6 -- Family Heritage}}}{Nhóm 6 -- Family Heritage}}\label{nhuxf3m-6-family-heritage}}
+
+\begin{itemize}
+\item
+  Mỗi HistoricalDocument, FamilyStory và Archive đều phải thuộc về một Family cụ thể.
+\item
+  Thuộc tính category của HistoricalDocument chỉ được nhận các giá trị hợp lệ đã định nghĩa (document, notable\_member).
+\item
+  FamilyStory ghi nhận người đóng góp (author\_id) để xác định ai là người kể lại/biên soạn câu chuyện; author\_id có thể để trống nếu không xác định được người đóng góp.
+\item
+  Archive lưu tư liệu số hóa và bắt buộc phải có đường dẫn tệp (file\_url) hợp lệ.
+\end{itemize}
+
+\hypertarget{nhuxf3m-7-ai-assisted-services}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 7 -- AI-assisted Services}}}{Nhóm 7 -- AI-assisted Services}}\label{nhuxf3m-7-ai-assisted-services}}
+
+\begin{itemize}
+\item
+  Mọi truy vấn AI của người dùng đều phải được ghi nhận vào AIQueryLog, kèm loại truy vấn (search, assistant, summarization, relationship\_explain), phục vụ theo dõi và cải thiện chất lượng dịch vụ AI.
+\item
+  AIRecommendation sử dụng khóa đa hình (target\_type, target\_id) để có thể gợi ý nhiều loại đối tượng khác nhau (thành viên, bài viết, tài liệu) cho cùng một User.
+\item
+  Điểm số (score) của AIRecommendation dùng để sắp xếp mức độ ưu tiên hiển thị gợi ý cho người dùng.
+\end{itemize}
+
+\hypertarget{nhuxf3m-8-dashboard-administration}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{Nhóm 8 -- Dashboard \& Administration}}}{Nhóm 8 -- Dashboard \& Administration}}\label{nhuxf3m-8-dashboard-administration}}
+
+\begin{itemize}
+\item
+  AuditLog là thực thể chỉ-ghi (append-only): dữ liệu chỉ được thêm mới, không được cập nhật hoặc xóa, nhằm đảm bảo tính toàn vẹn của nhật ký kiểm toán.
+\item
+  Report ghi nhận mỗi lần một báo cáo thống kê được tạo/xuất ra, cùng người yêu cầu (generated\_by) và tệp kết quả (file\_url) nếu có; dữ liệu số liệu bên trong báo cáo được tổng hợp từ các thực thể nghiệp vụ khác tại thời điểm tạo báo cáo.
+\item
+  SystemConfig chỉ nên được tạo/cập nhật bởi người dùng có vai trò quản trị (Admin) --- ràng buộc này được kiểm soát ở tầng ứng dụng thông qua cơ chế RBAC.
+\end{itemize}
 
