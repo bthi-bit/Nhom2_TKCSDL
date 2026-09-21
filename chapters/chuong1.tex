@@ -1,29 +1,60 @@
-\chapter{GIỚI THIỆU VÀ PHẠM VI ĐỀ TÀI}
+\hypertarget{chux1b0ux1a1ng-1.-giux1edbi-thiux1ec7u-vuxe0-phux1ea1m-vi-ux111ux1ec1-tuxe0i}{%
+\section{\texorpdfstring{\textbf{CHƯƠNG 1. GIỚI THIỆU VÀ PHẠM VI ĐỀ TÀI}}{CHƯƠNG 1. GIỚI THIỆU VÀ PHẠM VI ĐỀ TÀI}}\label{chux1b0ux1a1ng-1.-giux1edbi-thiux1ec7u-vuxe0-phux1ea1m-vi-ux111ux1ec1-tuxe0i}}
 
-\section{Bối cảnh}
+\hypertarget{bux1ed1i-cux1ea3nh}{%
+\subsection{\texorpdfstring{\textbf{1.1. Bối cảnh}}{1.1. Bối cảnh}}\label{bux1ed1i-cux1ea3nh}}
 
 Các gia đình hiện đại ngày càng phân tán về mặt địa lý do học tập, công việc, di cư và toàn cầu hóa. Hệ quả là việc liên lạc giữa các thành viên trở nên thưa thớt, thông tin gia phả khó được lưu giữ đầy đủ, và các thế hệ trẻ có ít cơ hội hiểu về nguồn gốc cũng như xây dựng mối quan hệ gắn kết trong gia đình.
 
 Các nền tảng mạng xã hội hiện có hỗ trợ giao tiếp nhưng không được thiết kế để lưu trữ gia phả, hỗ trợ cộng tác theo hướng gia đình hay duy trì phát triển gia đình lâu dài. Ngược lại, các hệ thống gia phả truyền thống chỉ tập trung ghi nhận huyết thống mà thiếu các tính năng cộng đồng tương tác.
 
-FamilyConnect được đề xuất nhằm giải quyết khoảng trống này: tích hợp quản lý gia phả, giao tiếp gia đình, quản lý sự kiện, chia sẻ tri thức và các dịch vụ hỗ trợ bởi AI vào một hệ sinh thái phần mềm thống nhất.
+FamilyConnect được đề xuất nhằm giải quyết khoảng trống này: tích hợp quản lý gia phả, giao tiếp gia đình, quản lý sự kiện, chia sẻ tri thức và các dịch vụ hỗ trợ bởi AI vào một hệ sinh thái phần mềm thống nhất. Trong phạm vi đề tài này, trọng tâm được đặt vào việc thiết kế cơ sở dữ liệu (CSDL) làm nền tảng lưu trữ và vận hành cho toàn bộ hệ sinh thái phần mềm nêu trên.
 
-\section{Mục tiêu của công tác thiết kế CSDL}
+\hypertarget{mux1ee5c-tiuxeau}{%
+\subsection{\texorpdfstring{\textbf{1.2. Mục tiêu}}{1.2. Mục tiêu}}\label{mux1ee5c-tiuxeau}}
+
+\hypertarget{mux1ee5c-tiuxeau-tux1ed5ng-quuxe1t}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{1.2.1. Mục tiêu tổng quát}}}{1.2.1. Mục tiêu tổng quát}}\label{mux1ee5c-tiuxeau-tux1ed5ng-quuxe1t}}
+
+Mục tiêu tổng quát của đề tài là phân tích yêu cầu dữ liệu và xây dựng một cơ sở dữ liệu hoàn chỉnh, có cấu trúc chặt chẽ, đảm bảo tính toàn vẹn và khả năng mở rộng cho nền tảng FamilyConnect. Quá trình thiết kế được thực hiện tuần tự qua ba mức: quan niệm (ERD), logic (chuẩn hóa) và vật lý (DDL \& Index), nhằm tạo ra một mô hình dữ liệu vừa phản ánh đúng nghiệp vụ của một cộng đồng gia đình số, vừa tối ưu cho việc triển khai thực tế trên hệ quản trị cơ sở dữ liệu quan hệ.
+
+\hypertarget{mux1ee5c-tiuxeau-cux1ee5-thux1ec3}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{1.2.2. Mục tiêu cụ thể}}}{1.2.2. Mục tiêu cụ thể}}\label{mux1ee5c-tiuxeau-cux1ee5-thux1ec3}}
 
 \begin{itemize}
-  \item Xây dựng mô hình dữ liệu phản ánh đúng nghiệp vụ gia phả và cộng đồng gia đình, kiểm chứng được với người dùng nghiệp vụ.
-  \item Chuyển mô hình quan niệm thành lược đồ quan hệ chuẩn hóa, tránh dị thường thêm/sửa/xóa.
-  \item Hiện thực lược đồ vật lý trên SQL Server với chỉ mục phù hợp workload thực tế của hệ thống.
+\item
+  Phân tích các yêu cầu dữ liệu của hệ thống.
+\item
+  Xác định các đối tượng thông tin cần được quản lý.
+\item
+  Xác định các thuộc tính cần thiết của từng đối tượng.
+\item
+  Xác định các mối quan hệ giữa các đối tượng dữ liệu.
+\item
+  Xây dựng mô hình cơ sở dữ liệu phù hợp với yêu cầu của đề tài.
+\item
+  Thiết kế cơ sở dữ liệu ở các mức quan niệm, logic và vật lý.
+\item
+  Áp dụng các khóa và ràng buộc nhằm đảm bảo tính toàn vẹn dữ liệu.
+\item
+  Thực hiện chuẩn hóa dữ liệu nhằm hạn chế sự dư thừa.
+\item
+  Triển khai và kiểm thử cơ sở dữ liệu trên hệ quản trị cơ sở dữ liệu phù hợp.
 \end{itemize}
 
-\section{Phạm vi thiết kế}
+\hypertarget{phux1ea1m-vi-thiux1ebft-kux1ebf}{%
+\subsection{\texorpdfstring{\textbf{1.3. Phạm vi thiết kế}}{1.3. Phạm vi thiết kế}}\label{phux1ea1m-vi-thiux1ebft-kux1ebf}}
 
-Đề án tập trung vào các nhóm chức năng có ảnh hưởng trực tiếp đến cấu trúc dữ liệu: Người dùng \& bảo mật (RBAC), Gia đình \& Gia phả, Cộng đồng (bài viết/bình luận), Sự kiện, Danh bạ gia đình, Di sản gia đình, và một phần Quản trị hệ thống (nhật ký kiểm toán). Lớp dịch vụ AI (semantic search, gợi ý) được xem là dịch vụ tiêu thụ dữ liệu quan hệ và không đi sâu vào hạ tầng vector/embedding trong phạm vi CSDL quan hệ của đề án.
+Đề tài giới hạn phạm vi trong công tác phân tích và thiết kế cơ sở dữ liệu cho nền tảng FamilyConnect, không đi sâu vào việc phát triển giao diện người dùng, ứng dụng di động hay huấn luyện các mô hình trí tuệ nhân tạo. Cụ thể, phạm vi thiết kế bao gồm:
 
-\begin{infobox}
-\textbf{Quy trình thực hiện}
-
-\smallskip
-Đề án tuân theo đúng chu kỳ sống của CSDL: Phân tích yêu cầu → Thiết kế quan niệm (ERD/EER) → Thiết kế logic (lược đồ quan hệ, chuẩn hóa) → Thiết kế vật lý (DDL, chỉ mục). Mỗi giai đoạn nhận input từ giai đoạn trước và tạo output làm input cho giai đoạn sau.
-\end{infobox}
+\begin{itemize}
+\item
+  Về mặt nghiệp vụ: bao quát 8 nhóm chức năng chính của hệ thống --- Người dùng \& Bảo mật (User \& Security), Gia đình \& Gia phả (Family \& Genealogy), Cộng đồng (Community), Sự kiện (Events), Danh bạ gia đình (Family Directory), Di sản gia đình (Family Heritage), Dịch vụ hỗ trợ AI (AI-assisted Services) và Thống kê -- Quản trị (Dashboard \& Administration).
+\item
+  Về mặt dữ liệu: xác định và mô hình hóa 26 thực thể tương ứng với các đối tượng thông tin trong 8 nhóm chức năng nêu trên, bao gồm cả các thực thể được chuẩn hóa thành bảng vật lý riêng và các thực thể được gộp, tái sử dụng hoặc thay thế bằng View nhằm tránh dư thừa dữ liệu.
+\item
+  Về mặt kỹ thuật: thiết kế được thực hiện qua ba giai đoạn --- mô hình thực thể kết hợp (ERD) ở mức quan niệm, chuẩn hóa dữ liệu đến chuẩn 3NF ở mức logic, và cài đặt lược đồ vật lý (bảng, khóa chính, khóa ngoại, ràng buộc, chỉ mục) trên hệ quản trị cơ sở dữ liệu PostgreSQL ở mức vật lý.
+\item
+  Đề tài không bao gồm: thiết kế giao diện người dùng (UI/UX), phát triển mã nguồn ứng dụng Web/Mobile, xây dựng và huấn luyện thuật toán AI, cũng như triển khai hạ tầng máy chủ và vận hành hệ thống ở quy mô sản xuất --- những nội dung này thuộc phạm vi của các đề tài hoặc giai đoạn phát triển tiếp theo.
+\end{itemize}
 
