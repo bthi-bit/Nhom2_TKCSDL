@@ -118,11 +118,14 @@ SYSTEM\_CONFIG & config\_key & updated\_by & USER \\
 
 Ngoài các ràng buộc khóa chính và khóa ngoại đã trình bày ở mục 3.2 (và ràng buộc NOT NULL trên từng thuộc tính đã trình bày chi tiết tại mục 2.2), hệ thống còn áp dụng các ràng buộc UNIQUE, CHECK (miền giá trị) và DEFAULT sau nhằm đảm bảo tính toàn vẹn và nhất quán dữ liệu:
 
+\renewcommand{\arraystretch}{1.8}
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.0464}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.4115}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3945}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1476}}@{}}
+		>{\raggedright\arraybackslash}p{0.02\textwidth}
+		>{\raggedright\arraybackslash}p{0.30\textwidth}
+		@{\hspace{0.25cm}}
+		>{\raggedright\arraybackslash}p{0.38\textwidth}
+		>{\raggedright\arraybackslash}p{0.32\textwidth}
+		@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 \textbf{STT}
@@ -152,10 +155,29 @@ Ngoài các ràng buộc khóa chính và khóa ngoại đã trình bày ở m�
 13 & EVENT\_REMINDER & CHECK method IN (\textquotesingle push\textquotesingle,\textquotesingle email\textquotesingle,\textquotesingle sms\textquotesingle); DEFAULT \textquotesingle push\textquotesingle{} & Giới hạn phương thức gửi nhắc nhở. \\
 14 & EVENT\_REMINDER & CHECK status IN (\textquotesingle pending\textquotesingle,\textquotesingle sent\textquotesingle); DEFAULT \textquotesingle pending\textquotesingle{} & Giới hạn trạng thái gửi nhắc nhở. \\
 15 & HISTORICAL\_DOCUMENT & CHECK category IN (\textquotesingle document\textquotesingle,\textquotesingle notable\_member\textquotesingle) & Giới hạn miền giá trị phân loại tài liệu lịch sử. \\
-16 & AI\_QUERY\_LOG & CHECK query\_type IN (\textquotesingle search\textquotesingle,\textquotesingle assistant\textquotesingle,\textquotesingle summarization\textquotesingle,\textquotesingle relationship\_explain\textquotesingle) & Giới hạn miền giá trị loại truy vấn AI. \\
+16 & AI\_QUERY\_LOG &
+CHECK query\_type IN
+\newline
+(\textquotesingle search\textquotesingle,
+\textquotesingle assistant\textquotesingle,
+\textquotesingle summarization\textquotesingle,
+\textquotesingle relationship\_explain\textquotesingle)
+&
+Giới hạn miền giá trị
+\newline
+loại truy vấn AI. \\
 17 & AI\_RECOMMENDATION & CHECK target\_type IN (\textquotesingle member\textquotesingle,\textquotesingle post\textquotesingle,\textquotesingle document\textquotesingle) & Giới hạn miền giá trị loại đối tượng được gợi ý. \\
 18 & AUDIT\_LOG & Ràng buộc nghiệp vụ: chỉ cho phép INSERT (append-only) & Không cho phép UPDATE/DELETE nhằm bảo toàn nhật ký kiểm toán; thực hiện bằng trigger hoặc phân quyền ở mức vật lý. \\
-19 & Toàn bộ các bảng có created\_at/updated\_at/verified\_at/generated\_at/uploaded\_at & DEFAULT giá trị thời điểm hiện tại (CURRENT\_TIMESTAMP) & Tự động ghi nhận thời điểm tạo/cập nhật bản ghi khi không có giá trị được cung cấp. \\
+19 & Toàn bộ các bảng có created\_at/updated\_at/
+verified\_at/generated\_at/uploaded\_at
+&
+DEFAULT giá trị thời điểm hiện tại
+\newline
+(CURRENT\_TIMESTAMP)
+&
+Tự động ghi nhận thời điểm tạo/cập nhật bản ghi
+\newline
+khi không có giá trị được cung cấp. \\
 20 & Toàn bộ các cột khóa chính, khóa ngoại bắt buộc (xem mục 3.2) & NOT NULL & Đảm bảo toàn vẹn tham chiếu và định danh bản ghi. \\
 \end{longtable}
 
