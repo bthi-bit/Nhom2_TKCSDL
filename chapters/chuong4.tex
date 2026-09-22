@@ -4,17 +4,51 @@
 \subsection{4.1. Xác định hệ quản trị cơ sở dữ liệu}
 \label{sec:he_quan_tri_csdl}
 
-Theo yêu cầu phi chức năng đã xác định ở Chương 1 (mục 1.d --- Non-Functional Requirements), hệ thống FamilyConnect được yêu cầu sử dụng PostgreSQL làm hệ quản trị cơ sở dữ liệu (DBMS). Mục này trình bày các tiêu chí kỹ thuật củng cố cho lựa chọn đó, đối chiếu với các phương án thay thế phổ biến.
+Theo yêu cầu phi chức năng đã xác định ở Chương 1
+(mục 1.d --- Non-Functional Requirements), hệ thống
+FamilyConnect được yêu cầu sử dụng PostgreSQL làm hệ quản trị
+cơ sở dữ liệu (DBMS). Mục này trình bày các tiêu chí kỹ thuật
+củng cố cho lựa chọn đó, đối chiếu với các phương án thay thế
+phổ biến.
 
 Các tiêu chí lựa chọn được xem xét gồm:
 
 \begin{itemize}
-	\item Tính toàn vẹn dữ liệu và tuân thủ ACID: dữ liệu gia phả, hôn nhân, quan hệ huyết thống đòi hỏi ràng buộc tham chiếu (FK) và ràng buộc miền giá trị (CHECK) chặt chẽ --- phù hợp với mô hình quan hệ hơn là NoSQL.
-	\item Hỗ trợ truy vấn đệ quy (Recursive CTE): cây gia phả và cây phân cấp chi/nhánh (Branch tự tham chiếu) cần truy vấn đệ quy nhiều tầng, được PostgreSQL hỗ trợ tốt qua cú pháp WITH RECURSIVE.
-	\item Khả năng mở rộng (extensibility): PostgreSQL hỗ trợ các extension như pgcrypto (sinh khóa UUID), pg\_trgm (tìm kiếm gần đúng) và tsvector/tsquery (tìm kiếm toàn văn) --- phục vụ trực tiếp các tính năng AI-assisted Search và Family Directory.
-	\item Chi phí và giấy phép: PostgreSQL là phần mềm mã nguồn mở, miễn phí bản quyền, phù hợp với quy mô đồ án và khả năng triển khai thực tế.
-	\item Khả năng triển khai theo container: PostgreSQL có image chính thức trên Docker Hub, phù hợp với yêu cầu phi chức năng "Docker Deployment" đã đặt ra ở Chương 1.
-	\item Hệ sinh thái và khả năng tích hợp: PostgreSQL tương thích tốt với các driver phổ biến (Node.js, Python, Java) để kết nối với RESTful API Layer của hệ thống.
+	\item Tính toàn vẹn dữ liệu và tuân thủ ACID:
+	dữ liệu gia phả, hôn nhân, quan hệ huyết thống
+	đòi hỏi ràng buộc tham chiếu (FK)
+	và ràng buộc miền giá trị (CHECK) chặt chẽ
+	--- phù hợp với mô hình quan hệ hơn là NoSQL.
+	\item Hỗ trợ truy vấn đệ quy (Recursive CTE):
+	cây gia phả và cây phân cấp chi/nhánh
+	(Branch tự tham chiếu)
+	cần truy vấn đệ quy nhiều tầng,
+	được PostgreSQL hỗ trợ tốt
+	qua cú pháp WITH RECURSIVE.
+	\item Khả năng mở rộng (extensibility):
+	PostgreSQL hỗ trợ các extension như pgcrypto
+	(sinh khóa UUID),
+	pg\_trgm (tìm kiếm gần đúng)
+	và tsvector/tsquery (tìm kiếm toàn văn)
+	--- phục vụ trực tiếp các tính năng
+	AI-assisted Search và Family Directory.
+	\item Chi phí và giấy phép:
+	PostgreSQL là phần mềm mã nguồn mở,
+	miễn phí bản quyền,
+	phù hợp với quy mô đồ án
+	và khả năng triển khai thực tế.
+	\item Khả năng triển khai theo container:
+	PostgreSQL có image chính thức
+	trên Docker Hub,
+	phù hợp với yêu cầu phi chức năng
+	"Docker Deployment"
+	đã đặt ra ở Chương 1.
+	\item Hệ sinh thái và khả năng tích hợp:
+	PostgreSQL tương thích tốt
+	với các driver phổ biến
+	(Node.js, Python, Java)
+	để kết nối với RESTful API Layer
+	của hệ thống.
 \end{itemize}
 
 Bảng dưới đây so sánh nhanh PostgreSQL với hai phương án thay thế thường được cân nhắc (MySQL --- quan hệ; MongoDB --- NoSQL hướng tài liệu):
@@ -47,10 +81,28 @@ Kết luận: đề tài lựa chọn PostgreSQL (phiên bản 16 trở lên) l�
 PostgreSQL chỉ tự động tạo chỉ mục (index) cho khóa chính (PRIMARY KEY) và các cột có ràng buộc UNIQUE; các cột khóa ngoại (FK) và các cột thường xuyên xuất hiện trong mệnh đề WHERE/JOIN/ORDER BY không được tự động đánh chỉ mục. Do đó, cần chủ động tạo thêm chỉ mục cho các nhóm cột sau:
 
 \begin{itemize}
-	\item Cột khóa ngoại (FK): tăng tốc các phép JOIN và ràng buộc tham chiếu khi xóa/cập nhật bản ghi cha.
-	\item Cột/nhóm cột thường dùng để lọc và sắp xếp trong các truy vấn nghiệp vụ lặp lại (ví dụ: family\_id kết hợp created\_at để lấy bảng tin mới nhất theo dòng họ).
-	\item Cột phục vụ tra cứu danh bạ gia đình (nghề nghiệp, nơi ở, thế hệ).
-	\item Chỉ mục đặc biệt GIN kết hợp pg\_trgm cho tìm kiếm gần đúng theo họ tên, và GIN kết hợp tsvector cho tìm kiếm toàn văn nội dung bài viết/câu chuyện gia đình.
+	\item Cột khóa ngoại (FK):
+	tăng tốc các phép JOIN
+	và ràng buộc tham chiếu
+	khi xóa/cập nhật bản ghi cha.
+
+	\item Cột/nhóm cột thường dùng
+	để lọc và sắp xếp
+	trong các truy vấn nghiệp vụ lặp lại
+	(ví dụ: family\_id kết hợp created\_at
+	để lấy bảng tin mới nhất
+	theo dòng họ).
+
+	\item Cột phục vụ tra cứu
+	danh bạ gia đình
+	(nghề nghiệp, nơi ở, thế hệ).
+
+	\item Chỉ mục đặc biệt GIN
+	kết hợp pg\_trgm
+	cho tìm kiếm gần đúng theo họ tên,
+	và GIN kết hợp tsvector
+	cho tìm kiếm toàn văn
+	nội dung bài viết/câu chuyện gia đình.
 \end{itemize}
 
 \subsubsection{a) Chỉ mục trên các cột khóa ngoại}
@@ -65,32 +117,156 @@ PostgreSQL chỉ tự động tạo chỉ mục (index) cho khóa chính (PRIMAR
 		\endhead
 		\hline
 		\endfoot
-		
-		1 & families & idx\_\allowbreak families\_\allowbreak created\_\allowbreak by & created\_by & B-Tree \\ \hline
-		2 & branches & idx\_\allowbreak branches\_\allowbreak family & family\_id & B-Tree \\ \hline
-		3 & branches & idx\_\allowbreak branches\_\allowbreak parent & parent\_branch\_id & B-Tree \\ \hline
-		4 & family\_\allowbreak members & idx\_\allowbreak members\_\allowbreak family & family\_id & B-Tree \\ \hline
-		5 & family\_\allowbreak members & idx\_\allowbreak members\_\allowbreak branch & branch\_id & B-Tree \\ \hline
-		6 & family\_\allowbreak members & idx\_\allowbreak members\_\allowbreak verified\_\allowbreak by & verified\_by & B-Tree \\ \hline
-		7 & relationships & idx\_\allowbreak rel\_\allowbreak member\_\allowbreak a & member\_id\_a & B-Tree \\ \hline
-		8 & relationships & idx\_\allowbreak rel\_\allowbreak member\_\allowbreak b & member\_id\_b & B-Tree \\ \hline
-		9 & marriages & idx\_\allowbreak marriage\_\allowbreak member1 & member\_id\_1 & B-Tree \\ \hline
-		10 & marriages & idx\_\allowbreak marriage\_\allowbreak member2 & member\_id\_2 & B-Tree \\ \hline
-		11 & posts & idx\_\allowbreak posts\_\allowbreak author & author\_id & B-Tree \\ \hline
-		12 & comments & idx\_\allowbreak comments\_\allowbreak user & user\_id & B-Tree \\ \hline
-		13 & reactions & idx\_\allowbreak reactions\_\allowbreak post & post\_id & B-Tree \\ \hline
-		14 & photos & idx\_\allowbreak photos\_\allowbreak post & post\_id & B-Tree \\ \hline
-		15 & events & idx\_\allowbreak events\_\allowbreak creator & created\_by & B-Tree \\ \hline
-		16 & event\_\allowbreak participants & idx\_\allowbreak ep\_\allowbreak user & user\_id & B-Tree \\ \hline
-		17 & event\_\allowbreak galleries & idx\_\allowbreak gallery\_\allowbreak event & event\_id & B-Tree \\ \hline
-		18 & event\_\allowbreak reminders & idx\_\allowbreak reminder\_\allowbreak event & event\_id & B-Tree \\ \hline
-		19 & historical\_\allowbreak documents & idx\_\allowbreak doc\_\allowbreak family & family\_id & B-Tree \\ \hline
-		20 & family\_\allowbreak stories & idx\_\allowbreak story\_\allowbreak family & family\_id & B-Tree \\ \hline
-		21 & family\_\allowbreak stories & idx\_\allowbreak story\_\allowbreak author & author\_id & B-Tree \\ \hline
-		22 & archives & idx\_\allowbreak archive\_\allowbreak family & family\_id & B-Tree \\ \hline
-		23 & audit\_\allowbreak logs & idx\_\allowbreak audit\_\allowbreak user & user\_id & B-Tree \\ \hline
-		24 & reports & idx\_\allowbreak report\_\allowbreak user & generated\_by & B-Tree \\ \hline
-		25 & system\_\allowbreak configs & idx\_\allowbreak config\_\allowbreak user & updated\_by & B-Tree \\ \hline
+				1
+		& families
+		& idx\_\allowbreak families\_\allowbreak created\_\allowbreak by
+		& created\_by
+		& B-Tree
+		\\ \hline
+		2
+		& branches
+		& idx\_\allowbreak branches\_\allowbreak family
+		& family\_id
+		& B-Tree
+		\\ \hline
+		3
+		& branches
+		& idx\_\allowbreak branches\_\allowbreak parent
+		& parent\_branch\_id
+		& B-Tree
+		\\ \hline
+		4
+		& family\_\allowbreak members
+		& idx\_\allowbreak members\_\allowbreak family
+		& family\_id
+		& B-Tree
+		\\ \hline
+		5
+		& family\_\allowbreak members
+		& idx\_\allowbreak members\_\allowbreak branch
+		& branch\_id
+		& B-Tree
+		\\ \hline
+		6
+		& family\_\allowbreak members
+		& idx\_\allowbreak members\_\allowbreak verified\_\allowbreak by
+		& verified\_by
+		& B-Tree
+		\\ \hline
+		7
+		& relationships
+		& idx\_\allowbreak rel\_\allowbreak member\_\allowbreak a
+		& member\_id\_a
+		& B-Tree
+		\\ \hline
+		8
+		& relationships
+		& idx\_\allowbreak rel\_\allowbreak member\_\allowbreak b
+		& member\_id\_b
+		& B-Tree
+		\\ \hline
+		9
+		& marriages
+		& idx\_\allowbreak marriage\_\allowbreak member1
+		& member\_id\_1
+		& B-Tree
+		\\ \hline
+		10
+		& marriages
+		& idx\_\allowbreak marriage\_\allowbreak member2
+		& member\_id\_2
+		& B-Tree
+		\\ \hline
+		11
+		& posts
+		& idx\_\allowbreak posts\_\allowbreak author
+		& author\_id
+		& B-Tree
+		\\ \hline
+		12
+		& comments
+		& idx\_\allowbreak comments\_\allowbreak user
+		& user\_id
+		& B-Tree
+		\\ \hline
+		13
+		& reactions
+		& idx\_\allowbreak reactions\_\allowbreak post
+		& post\_id
+		& B-Tree
+		\\ \hline
+		14
+		& photos
+		& idx\_\allowbreak photos\_\allowbreak post
+		& post\_id
+		& B-Tree
+		\\ \hline
+		15
+		& events
+		& idx\_\allowbreak events\_\allowbreak creator
+		& created\_by
+		& B-Tree
+		\\ \hline
+		16
+		& event\_\allowbreak participants
+		& idx\_\allowbreak ep\_\allowbreak user
+		& user\_id
+		& B-Tree
+		\\ \hline
+		17
+		& event\_\allowbreak galleries
+		& idx\_\allowbreak gallery\_\allowbreak event
+		& event\_id
+		& B-Tree
+		\\ \hline
+		18
+		& event\_\allowbreak reminders
+		& idx\_\allowbreak reminder\_\allowbreak event
+		& event\_id
+		& B-Tree
+		\\ \hline
+		19
+		& historical\_\allowbreak documents
+		& idx\_\allowbreak doc\_\allowbreak family
+		& family\_id
+		& B-Tree
+		\\ \hline
+		20
+		& family\_\allowbreak stories
+		& idx\_\allowbreak story\_\allowbreak family
+		& family\_id
+		& B-Tree
+		\\ \hline
+		21
+		& family\_\allowbreak stories
+		& idx\_\allowbreak story\_\allowbreak author
+		& author\_id
+		& B-Tree
+		\\ \hline
+		22
+		& archives
+		& idx\_\allowbreak archive\_\allowbreak family
+		& family\_id
+		& B-Tree
+		\\ \hline
+		23
+		& audit\_\allowbreak logs
+		& idx\_\allowbreak audit\_\allowbreak user
+		& user\_id
+		& B-Tree
+		\\ \hline
+		24
+		& reports
+		& idx\_\allowbreak report\_\allowbreak user
+		& generated\_by
+		& B-Tree
+		\\ \hline
+		25
+		& system\_\allowbreak configs
+		& idx\_\allowbreak config\_\allowbreak user
+		& updated\_by
+		& B-Tree
+		\\ \hline
 	\end{longtable}
 \end{small}
 
@@ -107,13 +283,51 @@ PostgreSQL chỉ tự động tạo chỉ mục (index) cho khóa chính (PRIMAR
 		\hline
 		\endfoot
 		
-		1 & posts & idx\_\allowbreak posts\_\allowbreak family\_\allowbreak created & (family\_id, created\_at DESC) & Lấy bảng tin mới nhất theo dòng họ \\ \hline
-		2 & comments & idx\_\allowbreak comments\_\allowbreak post & (post\_id, created\_at) & Lấy bình luận theo bài viết, sắp xếp thời gian \\ \hline
-		3 & events & idx\_\allowbreak events\_\allowbreak family\_\allowbreak start & (family\_id, start\_time) & Lấy sự kiện sắp tới theo dòng họ \\ \hline
-		4 & event\_\allowbreak reminders & idx\_\allowbreak reminder\_\allowbreak user\_\allowbreak time & (user\_id, remind\_at) & Lấy lịch nhắc theo người dùng, theo thời gian \\ \hline
-		5 & ai\_\allowbreak query\_\allowbreak logs & idx\_\allowbreak query\_\allowbreak user\_\allowbreak time & (user\_id, created\_at DESC) & Lấy lịch sử truy vấn AI gần nhất \\ \hline
-		6 & ai\_\allowbreak recommendations & idx\_\allowbreak rec\_\allowbreak user\_\allowbreak score & (user\_id, score DESC) & Sắp xếp gợi ý AI theo mức độ liên quan \\ \hline
-		7 & audit\_\allowbreak logs & idx\_\allowbreak audit\_\allowbreak table\_\allowbreak target & (target\_table, target\_id) & Tra cứu nhật ký theo bảng/bản ghi bị tác động \\ \hline
+				1
+		& posts
+		& idx\_\allowbreak posts\_\allowbreak family\_\allowbreak created
+		& (family\_id, created\_at DESC)
+		& Lấy bảng tin mới nhất theo dòng họ
+		\\ \hline
+		2
+		& comments
+		& idx\_\allowbreak comments\_\allowbreak post
+		& (post\_id, created\_at)
+		& Lấy bình luận theo bài viết,
+		sắp xếp thời gian
+		\\ \hline
+		3
+		& events
+		& idx\_\allowbreak events\_\allowbreak family\_\allowbreak start
+		& (family\_id, start\_time)
+		& Lấy sự kiện sắp tới theo dòng họ
+		\\ \hline
+		4
+		& event\_\allowbreak reminders
+		& idx\_\allowbreak reminder\_\allowbreak user\_\allowbreak time
+		& (user\_id, remind\_at)
+		& Lấy lịch nhắc theo người dùng,
+		theo thời gian
+		\\ \hline
+		5
+		& ai\_\allowbreak query\_\allowbreak logs
+		& idx\_\allowbreak query\_\allowbreak user\_\allowbreak time
+		& (user\_id, created\_at DESC)
+		& Lấy lịch sử truy vấn AI gần nhất
+		\\ \hline
+		6
+		& ai\_\allowbreak recommendations
+		& idx\_\allowbreak rec\_\allowbreak user\_\allowbreak score
+		& (user\_id, score DESC)
+		& Sắp xếp gợi ý AI theo mức độ liên quan
+		\\ \hline
+		7
+		& audit\_\allowbreak logs
+		& idx\_\allowbreak audit\_\allowbreak table\_\allowbreak target
+		& (target\_table, target\_id)
+		& Tra cứu nhật ký theo bảng/bản ghi
+		bị tác động
+		\\ \hline
 	\end{longtable}
 \end{small}
 
