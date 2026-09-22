@@ -1,88 +1,360 @@
-\chapter{THIẾT KẾ LOGIC}
+\hypertarget{chux1b0ux1a1ng-4.-thiux1ebft-kux1ebf-mux1ee9c-vux1eadt-luxfd}{%
+\section{\texorpdfstring{\textbf{CHƯƠNG 4. THIẾT KẾ MỨC VẬT LÝ}}{CHƯƠNG 4. THIẾT KẾ MỨC VẬT LÝ}}\label{chux1b0ux1a1ng-4.-thiux1ebft-kux1ebf-mux1ee9c-vux1eadt-luxfd}}
 
-\section{Ánh xạ ERD sang lược đồ quan hệ}
+\hypertarget{xuxe1c-ux111ux1ecbnh-hux1ec7-quux1ea3n-trux1ecb-cux1a1-sux1edf-dux1eef-liux1ec7u}{%
+\subsection{\texorpdfstring{\textbf{4.1. Xác định hệ quản trị cơ sở dữ liệu}}{4.1. Xác định hệ quản trị cơ sở dữ liệu}}\label{xuxe1c-ux111ux1ecbnh-hux1ec7-quux1ea3n-trux1ecb-cux1a1-sux1edf-dux1eef-liux1ec7u}}
 
-Áp dụng quy tắc ánh xạ chuẩn: thực thể mạnh → một quan hệ; mối kết hợp 1:N → khóa chính phía 1 đưa sang phía N làm khóa ngoại; mối kết hợp M:N → tạo quan hệ trung gian với khóa chính là tổ hợp hai khóa ngoại; thực thể yếu → khóa chính là khóa chủ ghép khóa cục bộ.
+Theo yêu cầu phi chức năng đã xác định ở Chương 1 (mục 1.d --- Non-Functional Requirements), hệ thống FamilyConnect được yêu cầu sử dụng PostgreSQL làm hệ quản trị cơ sở dữ liệu (DBMS). Mục này trình bày các tiêu chí kỹ thuật củng cố cho lựa chọn đó, đối chiếu với các phương án thay thế phổ biến.
 
-\begin{infobox}
-\footnotesize
-\begin{verbatim}
-NguoiDung(maND, email, matKhauHash, maTV FK, ngayTao)
-GiaDinh(maGD, tenGiaDinh, ngayTao)
-ThanhVien(maTV, maGD FK, hoTen, ngaySinh, ngayMat, gioiTinh)
-QuanHeChaCon(maCon FK, maChaMe FK, vaiTro) -- PK: (maCon, maChaMe)
-HonNhan(maHN, maTV1 FK, maTV2 FK, ngayKetHon, ngayLyHon, trangThai)
-VaiTro(maVT, tenVT)
-PhanQuyen(maND FK, maGD FK, maVT FK) -- PK tổ hợp 3 khóa
-BaiViet(maBV, maND FK, maGD FK, noiDung, ngayDang)
-BinhLuan(maBV FK, sttBL, maND FK, noiDung, ngayBL) -- khóa: (maBV, sttBL)
-SuKien(maSK, maGD FK, tenSK, diaDiem, ngayDienRa)
-ThamGiaSuKien(maSK FK, maND FK, trangThai, ngayThamGia) -- PK: (maSK, maND)
-HoSoNgheNghiep(maHS, maTV FK, ngheNghiep, noiCongTac, tuNam, denNam)
-TaiLieuLichSu(maTL, maGD FK, tieuDe, loaiTepTin, url)
-QuanTriGiaDinh(maND PK/FK, quyenDacBiet) -- ánh xạ chuyên biệt hóa 3.4,
-                                            1:1 với NguoiDung
-ThanhVienThuong(maND PK/FK) -- ánh xạ chuyên biệt hóa 3.4
-NhatKyKiemToan(maNK, maND FK NULL, hanhDong, doiTuong, thoiGian)
-\end{verbatim}
-\end{infobox}
+Các tiêu chí lựa chọn được xem xét gồm:
 
-\section{Xác định phụ thuộc hàm (FD)}
+\begin{itemize}
+\item
+  Tính toàn vẹn dữ liệu và tuân thủ ACID: dữ liệu gia phả, hôn nhân, quan hệ huyết thống đòi hỏi ràng buộc tham chiếu (FK) và ràng buộc miền giá trị (CHECK) chặt chẽ --- phù hợp với mô hình quan hệ hơn là NoSQL.
+\item
+  Hỗ trợ truy vấn đệ quy (Recursive CTE): cây gia phả và cây phân cấp chi/nhánh (Branch tự tham chiếu) cần truy vấn đệ quy nhiều tầng, được PostgreSQL hỗ trợ tốt qua cú pháp WITH RECURSIVE.
+\item
+  Khả năng mở rộng (extensibility): PostgreSQL hỗ trợ các extension như pgcrypto (sinh khóa UUID), pg\_trgm (tìm kiếm gần đúng) và tsvector/tsquery (tìm kiếm toàn văn) --- phục vụ trực tiếp các tính năng AI-assisted Search và Family Directory.
+\item
+  Chi phí và giấy phép: PostgreSQL là phần mềm mã nguồn mở, miễn phí bản quyền, phù hợp với quy mô đồ án và khả năng triển khai thực tế.
+\item
+  Khả năng triển khai theo container: PostgreSQL có image chính thức trên Docker Hub, phù hợp với yêu cầu phi chức năng "Docker Deployment" đã đặt ra ở Chương 1.
+\item
+  Hệ sinh thái và khả năng tích hợp: PostgreSQL tương thích tốt với các driver phổ biến (Node.js, Python, Java) để kết nối với RESTful API Layer của hệ thống.
+\end{itemize}
 
-Phụ thuộc hàm được rút ra trực tiếp từ quy tắc nghiệp vụ ở mục 2.2, làm cơ sở để kiểm tra và chứng minh chuẩn hóa:
+Bảng dưới đây so sánh nhanh PostgreSQL với hai phương án thay thế thường được cân nhắc (MySQL --- quan hệ; MongoDB --- NoSQL hướng tài liệu):
 
-\begin{infobox}
-\begin{verbatim}
-maTV -> maGD, hoTen, ngaySinh, ngayMat, gioiTinh
-maND -> email, matKhauHash, maTV
-(maCon, maChaMe) -> vaiTro
-(maSK, maND) -> trangThai, ngayThamGia
-maHS -> maTV, ngheNghiep, noiCongTac, tuNam, denNam
-maBV -> maND, maGD, noiDung, ngayDang
-(maBV, sttBL) -> maND, noiDung, ngayBL
-maHN -> maTV1, maTV2, ngayKetHon, ngayLyHon, trangThai
-maVT -> tenVT
-maTL -> maGD, tieuDe, loaiTepTin, url
-maNK -> maND, hanhDong, doiTuong, thoiGian
-\end{verbatim}
-\end{infobox}
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2526}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2632}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2421}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2421}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Tiêu chí}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{PostgreSQL}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{MySQL}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{MongoDB}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Mô hình dữ liệu & Quan hệ, hỗ trợ JSONB & Quan hệ & Hướng tài liệu (NoSQL) \\
+Ràng buộc toàn vẹn tham chiếu (FK/CHECK) & Đầy đủ, chặt chẽ & Đầy đủ (InnoDB) & Hạn chế, phải tự xử lý ở tầng ứng dụng \\
+Truy vấn đệ quy (cây gia phả, cây chi/nhánh) & Hỗ trợ tốt (WITH RECURSIVE) & Hỗ trợ từ 8.0 nhưng hạn chế hơn & Không phù hợp cho quan hệ phân cấp phức tạp \\
+Tìm kiếm toàn văn / gần đúng & Có sẵn (tsvector, pg\_trgm) & Có nhưng kém linh hoạt hơn & Có (Atlas Search) nhưng cần dịch vụ riêng \\
+Chi phí giấy phép & Miễn phí, mã nguồn mở & Miễn phí, mã nguồn mở & Miễn phí (bản Community) \\
+Phù hợp với yêu cầu đề tài & Phù hợp nhất --- đã được chỉ định ở NFR & Có thể dùng nhưng kém linh hoạt hơn cho gia phả & Không phù hợp do thiếu ràng buộc quan hệ chặt chẽ \\
+\end{longtable}
 
-\section{Kiểm tra và chứng minh chuẩn hóa}
+Kết luận: đề tài lựa chọn PostgreSQL (phiên bản 16 trở lên) làm hệ quản trị cơ sở dữ liệu, kết hợp hai extension pgcrypto (sinh khóa chính dạng UUID) và pg\_trgm (tìm kiếm gần đúng theo tên thành viên) để đáp ứng đầy đủ các yêu cầu chức năng và phi chức năng đã đặt ra.
 
-\subsection{Dạng chuẩn 1 (1NF)}
+\hypertarget{tux1ea1o-index-tux1ed1i-ux1b0u-truy-vux1ea5n}{%
+\subsection{\texorpdfstring{\textbf{4.2. Tạo Index tối ưu truy vấn}}{4.2. Tạo Index tối ưu truy vấn}}\label{tux1ea1o-index-tux1ed1i-ux1b0u-truy-vux1ea5n}}
 
-Không có thuộc tính đa trị được lưu chung trong một cột. Ví dụ, số điện thoại liên hệ của ThanhVien nếu có nhiều giá trị sẽ được tách thành bảng riêng:
+PostgreSQL chỉ tự động tạo chỉ mục (index) cho khóa chính (PRIMARY KEY) và các cột có ràng buộc UNIQUE; các cột khóa ngoại (FK) và các cột thường xuyên xuất hiện trong mệnh đề WHERE/JOIN/ORDER BY không được tự động đánh chỉ mục. Do đó, cần chủ động tạo thêm chỉ mục cho các nhóm cột sau:
 
-\begin{infobox}
-\begin{verbatim}
-LienHeThanhVien(maTV FK, loaiLienHe, giaTri)
-  -- PK: (maTV, loaiLienHe, giaTri)
-\end{verbatim}
-\end{infobox}
+\begin{itemize}
+\item
+  Cột khóa ngoại (FK): tăng tốc các phép JOIN và ràng buộc tham chiếu khi xóa/cập nhật bản ghi cha.
+\item
+  Cột/nhóm cột thường dùng để lọc và sắp xếp trong các truy vấn nghiệp vụ lặp lại (ví dụ: family\_id kết hợp created\_at để lấy bảng tin mới nhất theo dòng họ).
+\item
+  Cột phục vụ tra cứu danh bạ gia đình (nghề nghiệp, nơi ở, thế hệ).
+\item
+  Chỉ mục đặc biệt GIN kết hợp pg\_trgm cho tìm kiếm gần đúng theo họ tên, và GIN kết hợp tsvector cho tìm kiếm toàn văn nội dung bài viết/câu chuyện gia đình.
+\end{itemize}
 
-\subsection{Dạng chuẩn 2 (2NF)}
+\hypertarget{a-chux1ec9-mux1ee5c-truxean-cuxe1c-cux1ed9t-khuxf3a-ngoux1ea1i}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{a) Chỉ mục trên các cột khóa ngoại}}}{a) Chỉ mục trên các cột khóa ngoại}}\label{a-chux1ec9-mux1ee5c-truxean-cuxe1c-cux1ed9t-khuxf3a-ngoux1ea1i}}
 
-Xét các quan hệ có khóa tổ hợp: ThamGiaSuKien(maSK, maND) → trangThai, ngayThamGia; QuanHeChaCon(maCon, maChaMe) → vaiTro; PhanQuyen(maND, maGD, maVT). Mọi thuộc tính không khóa đều phụ thuộc đầy đủ vào toàn bộ khóa tổ hợp, không có thuộc tính nào chỉ phụ thuộc một phần khóa → các quan hệ đạt 2NF.
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.0671}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2484}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.3023}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2459}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1364}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Bảng}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Tên Index}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Cột}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Loại}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & families & idx\_families\_created\_by & created\_by & B-Tree \\
+2 & branches & idx\_branches\_family & family\_id & B-Tree \\
+3 & branches & idx\_branches\_parent & parent\_branch\_id & B-Tree \\
+4 & family\_members & idx\_members\_family & family\_id & B-Tree \\
+5 & family\_members & idx\_members\_branch & branch\_id & B-Tree \\
+6 & family\_members & idx\_members\_verified\_by & verified\_by & B-Tree \\
+7 & relationships & idx\_rel\_member\_a & member\_id\_a & B-Tree \\
+8 & relationships & idx\_rel\_member\_b & member\_id\_b & B-Tree \\
+9 & marriages & idx\_marriage\_member1 & member\_id\_1 & B-Tree \\
+10 & marriages & idx\_marriage\_member2 & member\_id\_2 & B-Tree \\
+11 & posts & idx\_posts\_author & author\_id & B-Tree \\
+12 & comments & idx\_comments\_user & user\_id & B-Tree \\
+13 & reactions & idx\_reactions\_post & post\_id & B-Tree \\
+14 & photos & idx\_photos\_post & post\_id & B-Tree \\
+15 & events & idx\_events\_creator & created\_by & B-Tree \\
+16 & event\_participants & idx\_ep\_user & user\_id & B-Tree \\
+17 & event\_galleries & idx\_gallery\_event & event\_id & B-Tree \\
+18 & event\_reminders & idx\_reminder\_event & event\_id & B-Tree \\
+19 & historical\_documents & idx\_doc\_family & family\_id & B-Tree \\
+20 & family\_stories & idx\_story\_family & family\_id & B-Tree \\
+21 & family\_stories & idx\_story\_author & author\_id & B-Tree \\
+22 & archives & idx\_archive\_family & family\_id & B-Tree \\
+23 & audit\_logs & idx\_audit\_user & user\_id & B-Tree \\
+24 & reports & idx\_report\_user & generated\_by & B-Tree \\
+25 & system\_configs & idx\_config\_user & updated\_by & B-Tree \\
+\end{longtable}
 
-Các quan hệ đơn khóa bổ sung ở 4.2 (HonNhan, VaiTro, TaiLieuLichSu, NhatKyKiemToan, QuanTriGiaDinh, ThanhVienThuong) đạt 2NF hiển nhiên vì khóa chính không phải tổ hợp. Riêng PhanQuyen không có thuộc tính không khóa nào nên điều kiện 2NF cũng thỏa mãn một cách hiển nhiên (không có gì để kiểm tra phụ thuộc bộ phận).
+\hypertarget{b-chux1ec9-mux1ee5c-phux1ee5c-vux1ee5-cuxe1c-truy-vux1ea5n-nghiux1ec7p-vux1ee5-thux1b0ux1eddng-xuyuxean}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{b) Chỉ mục phục vụ các truy vấn nghiệp vụ thường xuyên}}}{b) Chỉ mục phục vụ các truy vấn nghiệp vụ thường xuyên}}\label{b-chux1ec9-mux1ee5c-phux1ee5c-vux1ee5-cuxe1c-truy-vux1ea5n-nghiux1ec7p-vux1ee5-thux1b0ux1eddng-xuyuxean}}
 
-\subsection{Dạng chuẩn 3 (3NF) --- chứng minh bằng phản ví dụ}
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.0649}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2206}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2729}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2267}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2147}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Bảng}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Tên Index}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Cột}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mục đích}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & posts & idx\_posts\_family\_created & (family\_id, created\_at DESC) & Lấy bảng tin mới nhất theo dòng họ \\
+2 & comments & idx\_comments\_post & (post\_id, created\_at) & Lấy bình luận theo bài viết, sắp xếp thời gian \\
+3 & events & idx\_events\_family\_start & (family\_id, start\_time) & Lấy sự kiện sắp tới theo dòng họ \\
+4 & event\_reminders & idx\_reminder\_user\_time & (user\_id, remind\_at) & Lấy lịch nhắc theo người dùng, theo thời gian \\
+5 & ai\_query\_logs & idx\_query\_user\_time & (user\_id, created\_at DESC) & Lấy lịch sử truy vấn AI gần nhất \\
+6 & ai\_recommendations & idx\_rec\_user\_score & (user\_id, score DESC) & Sắp xếp gợi ý AI theo mức độ liên quan \\
+7 & audit\_logs & idx\_audit\_table\_target & (target\_table, target\_id) & Tra cứu nhật ký theo bảng/bản ghi bị tác động \\
+\end{longtable}
 
-Giả sử ban đầu gộp ThanhVien và GiaDinh thành một bảng ThanhVien\_GD(maTV, hoTen, maGD, tenGiaDinh). Khi đó tồn tại phụ thuộc bắc cầu:
+\hypertarget{c-chux1ec9-mux1ee5c-phux1ee5c-vux1ee5-tra-cux1ee9u-family-directory}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{c) Chỉ mục phục vụ tra cứu Family Directory}}}{c) Chỉ mục phục vụ tra cứu Family Directory}}\label{c-chux1ec9-mux1ee5c-phux1ee5c-vux1ee5-tra-cux1ee9u-family-directory}}
 
-\begin{center}
-maTV → maGD, \quad maGD → tenGiaDinh \quad $\Rightarrow$ \quad maTV → tenGiaDinh \ (bắc cầu)
-\end{center}
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.0649}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2188}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.3029}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2292}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1841}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Bảng}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Tên Index}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Cột}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Mục đích}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & family\_members & idx\_members\_occupation & occupation & Tìm kiếm thành viên theo nghề nghiệp \\
+2 & family\_members & idx\_members\_location & location & Tìm kiếm thành viên theo nơi ở \\
+3 & family\_members & idx\_members\_generation & (family\_id, generation\_level) & Thống kê/tra cứu theo thế hệ trong từng dòng họ \\
+\end{longtable}
 
-Điều này gây dị thường: đổi tên một GiaDinh phải sửa trên mọi dòng ThanhVien thuộc gia đình đó (bất thường sửa), và không thể tạo một GiaDinh mới nếu chưa có ThanhVien nào (bất thường thêm). Phân rã tách GiaDinh thành quan hệ riêng như ở mục 4.1 loại bỏ phụ thuộc bắc cầu này → đạt 3NF.
+\hypertarget{d-chux1ec9-mux1ee5c-tuxecm-kiux1ebfm-gux1ea7n-ux111uxfang-vuxe0-tuxecm-kiux1ebfm-touxe0n-vux103n}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{d) Chỉ mục tìm kiếm gần đúng và tìm kiếm toàn văn}}}{d) Chỉ mục tìm kiếm gần đúng và tìm kiếm toàn văn}}\label{d-chux1ec9-mux1ee5c-tuxecm-kiux1ebfm-gux1ea7n-ux111uxfang-vuxe0-tuxecm-kiux1ebfm-touxe0n-vux103n}}
 
-\subsection{Dạng chuẩn Boyce--Codd (BCNF)}
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.0648}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2179}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.3046}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2298}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1828}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Bảng}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Tên Index}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Cột}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Loại / Mục đích}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & family\_members & idx\_members\_fullname\_trgm & full\_name & GIN + pg\_trgm --- tìm kiếm gần đúng theo họ tên \\
+2 & posts & idx\_posts\_content\_fts & to\_tsvector(content) & GIN --- tìm kiếm toàn văn nội dung bài viết \\
+3 & family\_stories & idx\_story\_content\_fts & to\_tsvector(content) & GIN --- tìm kiếm toàn văn câu chuyện gia đình \\
+\end{longtable}
 
-Với mọi FD không tầm thường X → Y trong các quan hệ đã liệt kê, vế trái X đều là siêu khóa (khóa chính hoặc khóa chính tổ hợp) của quan hệ tương ứng. Do đó toàn bộ lược đồ ở mục 4.1 đạt BCNF; không phát sinh phụ thuộc bất thường ngoài khóa.
+Tổng cộng 38 chỉ mục được thiết lập bổ sung ngoài các chỉ mục tự động của khóa chính/UNIQUE, cân bằng giữa hiệu năng truy vấn đọc (SELECT) và chi phí ghi (INSERT/UPDATE) --- do đó, các chỉ mục chỉ được tạo trên những cột thực sự tham gia vào các thao tác JOIN, lọc hoặc sắp xếp phổ biến của hệ thống, tránh đánh chỉ mục tràn lan.
 
-Kết luận này nay bao quát toàn bộ các quan hệ đã liệt kê ở 4.1, kể cả các bảng bổ sung HonNhan, VaiTro, TaiLieuLichSu, NhatKyKiemToan, QuanTriGiaDinh và ThanhVienThuong --- tất cả đều có khóa chính là khóa đơn hoặc khóa ngoại 1:1, nên mọi FD không tầm thường đều xuất phát từ siêu khóa.
+\hypertarget{giux1ea3-lux1eadp-cuxe1c-cuxe2u-truy-vux1ea5n-ux111ux1ec3-giux1ea3i-quyux1ebft-vux1ea5n-ux111ux1ec1}{%
+\subsection{\texorpdfstring{\textbf{4.3. Giả lập các câu truy vấn để giải quyết vấn đề}}{4.3. Giả lập các câu truy vấn để giải quyết vấn đề}}\label{giux1ea3-lux1eadp-cuxe1c-cuxe2u-truy-vux1ea5n-ux111ux1ec3-giux1ea3i-quyux1ebft-vux1ea5n-ux111ux1ec1}}
 
-\section{Kiểm tra tính bảo toàn của phép phân rã}
+Phần này minh họa một số câu truy vấn SQL tiêu biểu, mô phỏng các bài toán nghiệp vụ thực tế của FamilyConnect và chỉ ra chỉ mục tương ứng (mục 4.2) được tận dụng để tối ưu hiệu năng.
 
-Áp dụng điều kiện đủ (R1 $\cap$ R2) → R1 hoặc (R1 $\cap$ R2) → R2: ví dụ ThanhVien và GiaDinh giao nhau ở maGD, là khóa chính của GiaDinh → phép phân rã bảo toàn kết nối. Tương tự, BaiViet và BinhLuan giao nhau ở maBV, là khóa chính của BaiViet → bảo toàn kết nối, không sinh dòng giả khi JOIN lại.
+\textbf{Truy vấn 1: Hiển thị cây gia phả của một dòng họ kèm quan hệ huyết thống}
+
+\begin{lstlisting}
+SELECT fm.member_id, fm.full_name, fm.birth_date, fm.death_date,
+       r.relation_type, pr.full_name AS quan_he_voi
+FROM family_members fm
+LEFT JOIN relationships r ON r.member_id_a = fm.member_id
+LEFT JOIN family_members pr ON pr.member_id = r.member_id_b
+WHERE fm.family_id = :family_id
+ORDER BY fm.generation_level, fm.full_name;
+\end{lstlisting}
+
+\emph{Chỉ mục idx\_members\_family và idx\_rel\_member\_a tăng tốc thao tác lọc theo dòng họ và JOIN với bảng quan hệ huyết thống.}
+
+\textbf{Truy vấn 2: Tìm kiếm thành viên theo nghề nghiệp và nơi ở (Family Directory)}
+
+\begin{lstlisting}
+SELECT member_id, full_name, occupation, location, generation_level
+FROM family_members
+WHERE family_id = :family_id
+  AND occupation ILIKE '%ky su%'
+  AND location = 'Ho Chi Minh';
+\end{lstlisting}
+
+\emph{Tận dụng idx\_members\_occupation và idx\_members\_location để giới hạn nhanh tập kết quả trước khi lọc chi tiết (ví dụ minh họa: occupation chứa "kỹ sư", location = "Hồ Chí Minh").}
+
+\textbf{Truy vấn 3: Lấy 10 bài viết mới nhất của một dòng họ kèm số lượng bình luận và reaction}
+
+\begin{lstlisting}
+SELECT p.post_id, p.content, p.created_at,
+       COUNT(DISTINCT c.comment_id) AS so_binh_luan,
+       COUNT(DISTINCT r.reaction_id) AS so_reaction
+FROM posts p
+LEFT JOIN comments c ON c.post_id = p.post_id
+LEFT JOIN reactions r ON r.post_id = p.post_id
+WHERE p.family_id = :family_id
+GROUP BY p.post_id
+ORDER BY p.created_at DESC
+LIMIT 10;
+\end{lstlisting}
+
+\emph{Chỉ mục composite idx\_posts\_family\_created (family\_id, created\_at DESC) cho phép lọc và sắp xếp chỉ bằng một lần quét chỉ mục (index scan), tránh phải sort toàn bảng.}
+
+\textbf{Truy vấn 4: Danh sách sự kiện trong 30 ngày tới kèm số người xác nhận tham gia}
+
+\begin{lstlisting}
+SELECT e.event_id, e.title, e.start_time,
+       COUNT(ep.user_id) FILTER (WHERE ep.rsvp_status = 'yes')
+           AS so_nguoi_xac_nhan
+FROM events e
+LEFT JOIN event_participants ep ON ep.event_id = e.event_id
+WHERE e.family_id = :family_id
+  AND e.start_time BETWEEN CURRENT_TIMESTAMP
+                       AND CURRENT_TIMESTAMP + INTERVAL '30 days'
+GROUP BY e.event_id
+ORDER BY e.start_time;
+\end{lstlisting}
+
+\emph{Chỉ mục idx\_events\_family\_start (family\_id, start\_time) tối ưu cả điều kiện lọc theo dòng họ lẫn khoảng thời gian.}
+
+\textbf{Truy vấn 5: Thống kê số lượng thành viên theo từng thế hệ (Dashboard -- Demographics)}
+
+\begin{lstlisting}
+SELECT generation_level, COUNT(*) AS so_thanh_vien
+FROM family_members
+WHERE family_id = :family_id
+GROUP BY generation_level
+ORDER BY generation_level;
+\end{lstlisting}
+
+\emph{Chỉ mục idx\_members\_generation (family\_id, generation\_level) cho phép PostgreSQL tính GROUP BY trực tiếp trên chỉ mục (index-only scan) mà không cần truy cập bảng dữ liệu gốc.}
+
+\textbf{Truy vấn 6: Lấy 20 lượt truy vấn AI gần nhất của một người dùng}
+
+\begin{lstlisting}
+SELECT log_id, query_text, query_type, created_at
+FROM ai_query_logs
+WHERE user_id = :user_id
+ORDER BY created_at DESC
+LIMIT 20;
+\end{lstlisting}
+
+\emph{Chỉ mục idx\_query\_user\_time (user\_id, created\_at DESC) tránh phải sắp xếp lại toàn bộ kết quả sau khi lọc.}
+
+\textbf{Truy vấn 7: Tra cứu nhật ký kiểm toán (audit) liên quan đến một bản ghi cụ thể}
+
+\begin{lstlisting}
+SELECT log_id, user_id, action, created_at
+FROM audit_logs
+WHERE target_table = 'family_members'
+  AND target_id = :member_id
+ORDER BY created_at DESC;
+\end{lstlisting}
+
+\emph{Chỉ mục idx\_audit\_table\_target (target\_table, target\_id) tăng tốc tra cứu lịch sử thay đổi phục vụ kiểm duyệt và điều tra sự cố.}
+
+\textbf{Truy vấn 8: Tìm kiếm gần đúng theo họ tên thành viên (hỗ trợ gõ sai/không dấu)}
+
+\begin{lstlisting}
+SELECT member_id, full_name,
+       similarity(full_name, :keyword) AS do_tuong_dong
+FROM family_members
+WHERE full_name % :keyword
+ORDER BY do_tuong_dong DESC
+LIMIT 10;
+\end{lstlisting}
+
+\emph{Chỉ mục GIN idx\_members\_fullname\_trgm (pg\_trgm) cho phép so khớp gần đúng thay vì phải so khớp chính xác chuỗi ký tự.}
+
+\textbf{Truy vấn 9: Tìm kiếm toàn văn nội dung bài viết theo từ khóa}
+
+\begin{lstlisting}
+SELECT post_id, content
+FROM posts
+WHERE to_tsvector('simple', content) @@ plainto_tsquery('simple', :keyword);
+\end{lstlisting}
+
+\emph{Chỉ mục GIN idx\_posts\_content\_fts giúp thao tác tìm kiếm từ khóa trong nội dung văn bản dài đạt hiệu năng gần O(log n) thay vì quét tuần tự toàn bảng.}
+
+\textbf{Truy vấn 10: Sinh số liệu báo cáo thống kê bài viết và sự kiện theo tháng cho một dòng họ}
+
+\begin{lstlisting}
+SELECT date_trunc('month', COALESCE(p.created_at, e.start_time)) AS thang,
+       COUNT(DISTINCT p.post_id) AS so_bai_viet,
+       COUNT(DISTINCT e.event_id) AS so_su_kien
+FROM families f
+LEFT JOIN posts p ON p.family_id = f.family_id
+LEFT JOIN events e ON e.family_id = f.family_id
+WHERE f.family_id = :family_id
+GROUP BY thang
+ORDER BY thang;
+\end{lstlisting}
+
+\emph{Kết quả truy vấn này là số liệu nguồn được lưu lại thành một bản ghi trong bảng REPORT (report\_type = 'monthly\_activity') mỗi khi người dùng yêu cầu xuất báo cáo.}
 
