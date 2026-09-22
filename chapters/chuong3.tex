@@ -275,5 +275,5 @@ Kiểm tra bốn quan hệ kết quả của ví dụ (EVENT, FAMILY, USER, EVEN
   MARRIAGE(marriage\_id, member\_id\_1, member\_id\_2, marriage\_date, status): tương tự RELATIONSHIP, thuộc tính quyết định là marriage\_id (khóa chính) → đạt BCNF.
 \end{itemize}
 
-Đối với các quan hệ còn lại trong lược đồ (FAMILY\_MEMBER, POST, COMMENT, PHOTO, EVENT, EVENT\_GALLERY, EVENT\_REMINDER, HISTORICAL\_DOCUMENT, FAMILY\_STORY, ARCHIVE, AI\_QUERY\_LOG, AI\_RECOMMENDATION, AUDIT\_LOG, REPORT, SYSTEM\_CONFIG, BRANCH), mỗi quan hệ đều sử dụng một khóa chính đại diện (surrogate key) là thuộc tính quyết định duy nhất cho toàn bộ các thuộc tính không khóa còn lại; không tồn tại thuộc tính không khóa nào có khả năng xác định thuộc tính không khóa khác. Do đó, toàn bộ 24 quan hệ của lược đồ tại mục 3.1 đều đạt chuẩn BCNF, khẳng định lược đồ quan hệ không còn dư thừa dữ liệu và đã sẵn sàng để chuyển sang giai đoạn thiết kế mức vật lý.
+
 
