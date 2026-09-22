@@ -6,19 +6,9 @@
 
 % ---------- Vietnamese-capable Unicode fonts (XeLaTeX) ----------
 \usepackage{fontspec}
-% Dò font TeX Gyre trước (đi kèm gói "tex-gyre"); nếu máy chưa cài / fontconfig
-% chưa cập nhật (lỗi "font cannot be found"), tự động chuyển sang Latin Modern
-% -- font này luôn có sẵn vì đi kèm mọi bản cài LaTeX (kể cả bản tối thiểu),
-% nên không bao giờ bị lỗi thiếu font nữa. Vẫn hỗ trợ đầy đủ Unicode tiếng Việt.
-\IfFontExistsTF{TeX Gyre Termes}
-{\setmainfont{TeX Gyre Termes}}   % Times-like serif
-{\setmainfont{Latin Modern Roman}}
-\IfFontExistsTF{TeX Gyre Heros}
-{\setsansfont{TeX Gyre Heros}}    % Helvetica-like sans
-{\setsansfont{Latin Modern Sans}}
-\IfFontExistsTF{TeX Gyre Cursor}
-{\setmonofont{TeX Gyre Cursor}[Scale=0.9]}  % Courier-like monospace
-{\setmonofont{Latin Modern Mono}[Scale=0.9]}
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Courier New}[Scale=0.9]
 
 \usepackage{amsmath,amssymb}
 \usepackage{xcolor}
@@ -30,15 +20,13 @@
 \makeatother
 \IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
 \makesavenoteenv{longtable}
-\providecommand{\ul}[1]{\underline{#1}} % simple PK underline (soul unavailable offline)
+\providecommand{\ul}[1]{\underline{#1}}
 \usepackage{enumitem}
 \setlength{\emergencystretch}{3em}
 \providecommand{\tightlist}{%
 	\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
-% ---------- Section numbering: headings already carry their own manual numbers
-% (CHƯƠNG 1., 1.1., 1.2.1., ...), so LaTeX auto-numbering stays off to avoid
-% duplicated numbers. Entries still populate the table of contents. ----------
+% ---------- Section numbering ----------
 \setcounter{secnumdepth}{-\maxdimen}
 \setcounter{tocdepth}{3}
 
@@ -124,13 +112,16 @@
 		{\large TP.HCM, 2026\par}
 	\end{titlepage}
 	
+	\begingroup
+	\renewcommand{\textbf}[1]{#1}
+	\renewcommand{\textit}[1]{#1}
 	\tableofcontents
+	\endgroup
 	\newpage
 	
-	
-\input{chapters/chuong1.tex}
-\input{chapters/chuong2.tex}
-\input{chapters/chuong3.tex}
-\input{chapters/chuong4.tex}
+	\input{chapters/chuong1.tex}
+	\input{chapters/chuong2.tex}
+	\input{chapters/chuong3.tex}
+	\input{chapters/chuong4.tex}
 	
 \end{document}
