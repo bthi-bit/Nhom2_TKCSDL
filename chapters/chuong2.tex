@@ -1,7 +1,26 @@
 \hypertarget{chux1b0ux1a1ng-2.-thiux1ebft-kux1ebf-mux1ee9c-quan-niux1ec7m}{%
 \section{\texorpdfstring{\textbf{CHƯƠNG 2. THIẾT KẾ MỨC QUAN NIỆM}}{CHƯƠNG 2. THIẾT KẾ MỨC QUAN NIỆM}}\label{chux1b0ux1a1ng-2.-thiux1ebft-kux1ebf-mux1ee9c-quan-niux1ec7m}}
 
+% ----------------------------------------------------------------
+% PHAN 2.1 - LIET KE VA MO TA CAC THUC THE
+% ----------------------------------------------------------------
+% Nhom User & Security
+% Nhom Family & Genealogy
+% Nhom Community
+% Nhom Events
+% Nhom Family Directory
+% Nhom Family Heritage
+% Nhom AI-assisted Services
+% Nhom Dashboard & Administration
+% ----------------------------------------------------------------
 \hypertarget{liux1ec7t-kuxea-vuxe0-muxf4-tux1ea3-chux1ee9c-nux103ng-uxfd-nghux129a-cuxe1c-thux1ef1c-thux1ec3}{%
+% ================================================================
+% FAMILYCONNECT - CHUONG 2
+% THIET KE MUC QUAN NIEM
+% ================================================================
+% Chuong nay trinh bay mo hinh quan niem cua he thong FamilyConnect.
+% Noi dung bao gom cac thuc the, thuoc tinh, moi quan he va business rules.
+% ================================================================
 \subsection{\texorpdfstring{\textbf{2.1. Liệt kê và mô tả chức năng, ý nghĩa các thực thể}}{2.1. Liệt kê và mô tả chức năng, ý nghĩa các thực thể}}\label{liux1ec7t-kuxea-vuxe0-muxf4-tux1ea3-chux1ee9c-nux103ng-uxfd-nghux129a-cuxe1c-thux1ef1c-thux1ec3}}
 
 Dựa trên kết quả phân tích yêu cầu ở Chương 1, hệ thống FamilyConnect được tổ chức thành 8 nhóm chức năng, ánh xạ thành đầy đủ 26 thực thể dữ liệu ở mức quan niệm --- mỗi thực thể tương ứng với một đối tượng thông tin độc lập cần được quản lý, kèm theo chức năng nghiệp vụ mà nó phục vụ. Việc gộp/tái sử dụng một số thực thể có quan hệ 1--1 hoặc dữ liệu tổng hợp (nếu cần) sẽ chỉ được cân nhắc ở bước thiết kế mức logic (chuẩn hóa) tại Chương 3, nhằm không làm mất tính đầy đủ của mô hình quan niệm ban đầu.
@@ -201,6 +220,14 @@ Dựa trên kết quả phân tích yêu cầu ở Chương 1, hệ thống Fami
 \end{longtable}
 
 \hypertarget{thuux1ed9c-tuxednh-cux1ee7a-cuxe1c-thux1ef1c-thux1ec3}{%
+% ----------------------------------------------------------------
+% PHAN 2.2 - THUOC TINH CUA CAC THUC THE
+% ----------------------------------------------------------------
+% Xac dinh thuoc tinh cua tung thuc the.
+% Xac dinh khoa chinh va khoa ngoai.
+% Xac dinh cac rang buoc du lieu.
+% Xac dinh gia tri mac dinh va tinh duy nhat.
+% ----------------------------------------------------------------
 \subsection{\texorpdfstring{\textbf{2.2. Thuộc tính của các thực thể}}{2.2. Thuộc tính của các thực thể}}\label{thuux1ed9c-tuxednh-cux1ee7a-cuxe1c-thux1ef1c-thux1ec3}}
 
 Phần này trình bày chi tiết thuộc tính của đầy đủ 26 thực thể được hình thành ở mức quan niệm. Mỗi thực thể được mô tả gồm: tên thuộc tính, ý nghĩa/mô tả và ràng buộc (khóa chính, khóa ngoại, miền giá trị, ràng buộc NOT NULL/UNIQUE\ldots).
@@ -865,6 +892,14 @@ updated\_at & Thời điểm cập nhật gần nhất & NOT NULL, DEFAULT thờ
 \end{longtable}
 
 \hypertarget{xuxe1c-ux111ux1ecbnh-cuxe1c-mux1ed1i-quan-hux1ec7-giux1eefa-cuxe1c-thux1ef1c-thux1ec3}{%
+% ----------------------------------------------------------------
+% PHAN 2.3 - XAC DINH CAC MOI QUAN HE
+% ----------------------------------------------------------------
+% Xac dinh moi quan he giua cac thuc the.
+% Xac dinh cardinality cua tung moi quan he.
+% Kiem tra quan he 1-1, 1-N va N-N.
+% Kiem tra cac moi quan he de quy.
+% ----------------------------------------------------------------
 \subsection{\texorpdfstring{\textbf{2.3. Xác định các mối quan hệ giữa các thực thể}}{2.3. Xác định các mối quan hệ giữa các thực thể}}\label{xuxe1c-ux111ux1ecbnh-cuxe1c-mux1ed1i-quan-hux1ec7-giux1eefa-cuxe1c-thux1ef1c-thux1ec3}}
 
 Bảng dưới đây tổng hợp các mối quan hệ giữa các thực thể trong mô hình quan niệm, bao gồm cả các mối quan hệ trực tiếp (1--N, 1--0..1) và các mối quan hệ nhiều-nhiều (N--N) được chuẩn hóa thông qua thực thể kết hợp (UserRole, EventParticipant) hoặc thực thể quan hệ mang thuộc tính riêng (Relationship, Marriage).
@@ -929,6 +964,13 @@ Bảng dưới đây tổng hợp các mối quan hệ giữa các thực thể 
 Ghi chú: thực thể AIRecommendation sử dụng khóa đa hình (target\_type/target\_id) để gợi ý nhiều loại đối tượng khác nhau (thành viên, bài viết, tài liệu), do đó mối quan hệ với thực thể đích không được ràng buộc bằng khóa ngoại vật lý cứng, mà được kiểm soát bằng ràng buộc miền giá trị (CHECK) kết hợp xử lý ở tầng ứng dụng. Các mối quan hệ 1--1 (FamilyMember--FamilyMemberVerification, FamilyMember--MemberProfile) là các trường hợp sẽ được cân nhắc gộp lại ở bước thiết kế mức logic (Chương 3) nhằm giảm JOIN không cần thiết khi triển khai vật lý.
 
 \hypertarget{business-rules-cux1ee7a-cuxe1c-nhuxf3m-thux1ef1c-thux1ec3}{%
+% ----------------------------------------------------------------
+% PHAN 2.4 - BUSINESS RULES
+% ----------------------------------------------------------------
+% Xac dinh cac quy tac nghiep vu cua he thong.
+% Cac quy tac duoc phan theo tung nhom thuc the.
+% Business rules lam co so cho thiet ke logic.
+% ----------------------------------------------------------------
 \subsection{\texorpdfstring{\textbf{2.4. Business rules của các nhóm thực thể}}{2.4. Business rules của các nhóm thực thể}}\label{business-rules-cux1ee7a-cuxe1c-nhuxf3m-thux1ef1c-thux1ec3}}
 
 Bên cạnh các ràng buộc toàn vẹn dữ liệu (PK, FK, UNIQUE, NOT NULL) đã thể hiện ở mục 2.2, hệ thống còn cần tuân thủ một số quy tắc nghiệp vụ (business rules) đặc thù cho từng nhóm chức năng như sau:
