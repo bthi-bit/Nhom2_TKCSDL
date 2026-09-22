@@ -1082,4 +1082,178 @@ Bên cạnh các ràng buộc toàn vẹn dữ liệu (PK, FK, UNIQUE, NOT NULL)
 \item
   SystemConfig chỉ nên được tạo/cập nhật bởi người dùng có vai trò quản trị (Admin) --- ràng buộc này được kiểm soát ở tầng ứng dụng thông qua cơ chế RBAC.
 \end{itemize}
-
+% =================================================================
+% GHI CHU BO SUNG - THIET KE MO HINH QUAN NIEM
+% =================================================================
+% FamilyConnect duoc phan tich dua tren cac yeu cau nghiep vu.
+% Mo hinh quan niem la buoc dau tien trong qua trinh thiet ke.
+% Muc tieu la xac dinh cac doi tuong du lieu quan trong.
+% Moi doi tuong duoc mo ta bang mot thuc the tuong ung.
+% Cac thuc the duoc phan nhom theo chuc nang cua he thong.
+%
+% -----------------------------------------------------------------
+% PHAN TICH NHOM USER VA SECURITY
+% -----------------------------------------------------------------
+% User dai dien cho nguoi su dung he thong.
+% Thong tin User duoc su dung trong qua trinh dang nhap.
+% Moi User co thong tin dinh danh rieng.
+% Email duoc su dung de xac dinh tai khoan.
+% Mat khau duoc luu duoi dang ma bam.
+% Trang thai tai khoan duoc quan ly theo quy dinh.
+% Role dai dien cho mot nhom quyen trong he thong.
+% Mot Role co the duoc gan cho nhieu User.
+% UserRole dung de lien ket User va Role.
+% Quan he nay ho tro co che phan quyen RBAC.
+% FamilyMemberVerification quan ly viec xac minh thanh vien.
+% Thong tin xac minh duoc gan voi thanh vien tuong ung.
+%
+% -----------------------------------------------------------------
+% PHAN TICH NHOM FAMILY VA GENEALOGY
+% -----------------------------------------------------------------
+% Family dai dien cho gia dinh hoac dong ho.
+% Moi Family co mot ma dinh danh rieng.
+% Branch dai dien cho nhanh cua dong ho.
+% Branch co the co quan he voi Branch khac.
+% Quan he cha con giua cac Branch tao cau truc cay.
+% FamilyMember dai dien cho mot thanh vien.
+% Thanh vien co the thuoc mot gia dinh cu the.
+% Thanh vien co the duoc lien ket voi tai khoan User.
+% Relationship mo ta quan he giua cac thanh vien.
+% Relationship co the co nhieu loai quan he khac nhau.
+% Marriage luu thong tin lien quan den hon nhan.
+% Cac quy tac nghiep vu duoc ap dung cho Marriage.
+%
+% -----------------------------------------------------------------
+% PHAN TICH NHOM COMMUNITY
+% -----------------------------------------------------------------
+% Post dai dien cho bai viet cua nguoi dung.
+% Bai viet co the thuoc pham vi chia se cua gia dinh.
+% Comment dai dien cho binh luan tren bai viet.
+% Mot Post co the co nhieu Comment.
+% Reaction luu phan ung cua nguoi dung.
+% Moi nguoi dung co the tao phan ung tren bai viet.
+% Photo luu thong tin hinh anh.
+% Photo co the duoc gan voi bai viet.
+% Cac thuc the Community ho tro tuong tac nguoi dung.
+% Du lieu Community duoc lien ket voi thanh vien.
+%
+% -----------------------------------------------------------------
+% PHAN TICH NHOM EVENTS
+% -----------------------------------------------------------------
+% Event dai dien cho mot su kien cua gia dinh.
+% Su kien co thong tin ve tieu de va thoi gian.
+% EventParticipant quan ly nguoi tham gia su kien.
+% Moi thanh vien co the tham gia nhieu su kien.
+% Mot su kien co the co nhieu nguoi tham gia.
+% RSVP duoc su dung de theo doi trang thai tham gia.
+% EventGallery luu cac hinh anh cua su kien.
+% EventReminder ho tro chuc nang nhac nho.
+% Nhac nho giup nguoi dung khong bo lo su kien.
+% Cac thuc the Event co quan he chat che voi nhau.
+%
+% -----------------------------------------------------------------
+% PHAN TICH NHOM FAMILY DIRECTORY
+% -----------------------------------------------------------------
+% MemberProfile luu thong tin mo rong cua thanh vien.
+% Thong tin co the bao gom nghe nghiep va hoc van.
+% Ho so thanh vien ho tro chuc nang tra cuu.
+% Du lieu ho so duoc lien ket voi thanh vien.
+% Moi thanh vien co the co thong tin ho so tuong ung.
+%
+% -----------------------------------------------------------------
+% PHAN TICH NHOM FAMILY HERITAGE
+% -----------------------------------------------------------------
+% HistoricalDocument luu cac tai lieu lich su.
+% Tai lieu co the duoc so hoa de luu tru.
+% FamilyStory luu cac cau chuyen cua gia dinh.
+% Cau chuyen co the duoc gan voi nguoi tao.
+% Archive ho tro viec luu tru tu lieu.
+% Cac tai lieu co the duoc phan loai theo nhom.
+% Thong tin Heritage co gia tri trong viec bao ton.
+%
+% -----------------------------------------------------------------
+% PHAN TICH NHOM AI ASSISTED SERVICES
+% -----------------------------------------------------------------
+% AIQueryLog luu lich su truy van AI.
+% Moi truy van co the duoc gan voi nguoi dung.
+% Thong tin truy van phuc vu viec theo doi hoat dong.
+% AIRecommendation luu cac de xuat tu he thong.
+% De xuat co the duoc tao dua tren du lieu nguoi dung.
+% Cac chuc nang AI duoc xem la thanh phan ho tro.
+% Du lieu AI khong thay the du lieu nghiep vu cot loi.
+%
+% -----------------------------------------------------------------
+% PHAN TICH NHOM DASHBOARD VA ADMINISTRATION
+% -----------------------------------------------------------------
+% AuditLog luu vet cac thao tac quan trong.
+% Nhat ky giup theo doi lich su thay doi.
+% Report dai dien cho cac bao cao cua he thong.
+% Bao cao co the duoc tao theo nhieu tieu chi.
+% SystemConfig luu cac tham so cau hinh.
+% Cac cau hinh quan trong duoc gioi han quyen truy cap.
+% Chuc nang quan tri duoc su dung boi nguoi co quyen.
+%
+% -----------------------------------------------------------------
+% GHI CHU VE KHOA CHINH
+% -----------------------------------------------------------------
+% Khoa chinh dung de dinh danh duy nhat mot ban ghi.
+% Moi thuc the can co mot co che dinh danh phu hop.
+% Khoa chinh co the la mot thuoc tinh hoac nhieu thuoc tinh.
+% Khoa phuc hop duoc su dung khi mot thuoc tinh khong du.
+% Viec xac dinh khoa chinh can phu hop voi nghiep vu.
+%
+% -----------------------------------------------------------------
+% GHI CHU VE KHOA NGOAI
+% -----------------------------------------------------------------
+% Khoa ngoai dung de lien ket giua cac thuc the.
+% Khoa ngoai tham chieu den khoa chinh cua thuc the khac.
+% Moi quan he giua cac thuc the can duoc xem xet.
+% Khoa ngoai giup duy tri tinh nhat quan cua du lieu.
+%
+% -----------------------------------------------------------------
+% GHI CHU VE RANG BUOC
+% -----------------------------------------------------------------
+% NOT NULL dung cho cac thuoc tinh bat buoc.
+% UNIQUE dung cho cac gia tri khong duoc phep trung lap.
+% DEFAULT dung de xac dinh gia tri mac dinh.
+% Cac rang buoc can phu hop voi yeu cau nghiep vu.
+% Rang buoc giup han che du lieu khong hop le.
+%
+% -----------------------------------------------------------------
+% GHI CHU VE MOI QUAN HE
+% -----------------------------------------------------------------
+% Moi quan he can duoc xac dinh cardinality.
+% Cardinality co the la mot-mot.
+% Cardinality co the la mot-nhieu.
+% Cardinality co the la nhieu-nhieu.
+% Quan he nhieu-nhieu co the can thuc the trung gian.
+% Quan he de quy can duoc mo ta ro rang.
+% Moi quan he phai co y nghia nghiep vu.
+%
+% -----------------------------------------------------------------
+% GHI CHU VE BUSINESS RULES
+% -----------------------------------------------------------------
+% Business rules mo ta cac quy tac cua he thong.
+% Quy tac nghiep vu bo sung cho mo hinh du lieu.
+% Cac quy tac giup dam bao tinh hop le cua du lieu.
+% Quy tac can duoc xem xet truoc khi thiet ke logic.
+% Mot so quy tac co the duoc chuyen thanh constraint.
+% Mot so quy tac can duoc xu ly o tang ung dung.
+%
+% -----------------------------------------------------------------
+% KET LUAN MO HINH QUAN NIEM
+% -----------------------------------------------------------------
+% Mo hinh quan niem la co so cho cac buoc thiet ke tiep theo.
+% Cac thuc the da duoc xac dinh theo pham vi he thong.
+% Cac thuoc tinh duoc liet ke theo tung thuc the.
+% Cac moi quan he duoc xac dinh giua cac thuc the.
+% Business rules duoc bo sung de lam ro yeu cau.
+% Mo hinh se duoc chuyen sang thiet ke logic.
+% O muc logic, cac quan he se duoc chuan hoa.
+% Khoa chinh va khoa ngoai se duoc xac dinh cu the.
+% Cac phu thuoc ham se duoc phan tich o chuong tiep theo.
+% Qua trinh chuan hoa giup han che du lieu trung lap.
+% Dong thoi chuan hoa giup giam cac bat thuong du lieu.
+% =================================================================
+% KET THUC GHI CHU BO SUNG
+% =================================================================
