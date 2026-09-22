@@ -277,3 +277,281 @@ Kiểm tra bốn quan hệ kết quả của ví dụ (EVENT, FAMILY, USER, EVEN
 
 Đối với các quan hệ còn lại trong lược đồ (FAMILY\_MEMBER, POST, COMMENT, PHOTO, EVENT, EVENT\_GALLERY, EVENT\_REMINDER, HISTORICAL\_DOCUMENT, FAMILY\_STORY, ARCHIVE, AI\_QUERY\_LOG, AI\_RECOMMENDATION, AUDIT\_LOG, REPORT, SYSTEM\_CONFIG, BRANCH), mỗi quan hệ đều sử dụng một khóa chính đại diện (surrogate key) là thuộc tính quyết định duy nhất cho toàn bộ các thuộc tính không khóa còn lại; không tồn tại thuộc tính không khóa nào có khả năng xác định thuộc tính không khóa khác. Do đó, toàn bộ 24 quan hệ của lược đồ tại mục 3.1 đều đạt chuẩn BCNF, khẳng định lược đồ quan hệ không còn dư thừa dữ liệu và đã sẵn sàng để chuyển sang giai đoạn thiết kế mức vật lý.
 
+\hypertarget{chux1b0ux1a1ng-3.-thiux1ebft-kux1ebf-mux1ee9c-logic}{%
+\section{\texorpdfstring{\textbf{CHƯƠNG 3. THIẾT KẾ MỨC LOGIC}}{CHƯƠNG 3. THIẾT KẾ MỨC LOGIC}}\label{chux1b0ux1a1ng-3.-thiux1ebft-kux1ebf-mux1ee9c-logic}}
+
+\hypertarget{lux1b0ux1ee3c-ux111ux1ed3-quan-hux1ec7}{%
+\subsection{\texorpdfstring{\textbf{3.1. Lược đồ quan hệ}}{3.1. Lược đồ quan hệ}}\label{lux1b0ux1ee3c-ux111ux1ed3-quan-hux1ec7}}
+
+Lược đồ quan hệ được xây dựng bằng cách chuyển đổi mô hình thực thể kết hợp (ERD) ở Chương 2 sang các quan hệ (bảng) theo các quy tắc chuyển đổi chuẩn:
+
+\begin{itemize}
+\item
+  Mỗi thực thể thông thường được ánh xạ thành một quan hệ; các thuộc tính của thực thể trở thành các cột, thuộc tính định danh trở thành khóa chính (PK).
+\item
+  Với mối quan hệ 1--N, khóa chính của thực thể phía "1" được đưa xuống làm khóa ngoại (FK) trong quan hệ phía "N" (ví dụ: family\_id trong FAMILY\_MEMBER tham chiếu FAMILY).
+\item
+  Với mối quan hệ N--N, tạo một quan hệ kết hợp mới chứa khóa ngoại của cả hai thực thể tham gia làm khóa chính kép (ví dụ: USER\_ROLE, EVENT\_PARTICIPANT); các quan hệ N--N mang thuộc tính riêng (Relationship, Marriage) được giữ làm quan hệ độc lập có khóa chính riêng (rel\_id, marriage\_id).
+\item
+  Với mối quan hệ 1--1 có sự phụ thuộc tồn tại bắt buộc (thực thể phụ thuộc luôn gắn liền và không có ý nghĩa nếu tách rời thực thể chính), các thuộc tính của thực thể phụ thuộc được gộp trực tiếp vào quan hệ của thực thể chính để tránh phát sinh JOIN 1--1 không cần thiết. Theo quy tắc này, FamilyMemberVerification và MemberProfile (đã xác định có quan hệ 1--1 với FamilyMember ở mục 2.3) được gộp vào quan hệ FAMILY\_MEMBER.
+\end{itemize}
+
+Áp dụng các quy tắc trên, mô hình quan niệm gồm 26 thực thể được chuyển thành lược đồ quan hệ gồm 24 quan hệ như sau (thuộc tính khóa chính được gạch chân --- in đậm; thuộc tính khóa ngoại được đánh dấu bằng dấu *):
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.0655}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3217}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.6128}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Tên quan hệ}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Lược đồ quan hệ (thuộc tính)}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & \textbf{USER} & \textbf{USER(\ul{user\_id}}, full\_name, email, phone, password\_hash, avatar, status, created\_at\textbf{)} \\
+2 & \textbf{ROLE} & \textbf{ROLE(\ul{role\_id}}, role\_name, description\textbf{)} \\
+3 & \textbf{USER\_ROLE} & \textbf{USER\_ROLE(\ul{user\_id}}, \textbf{\ul{role\_id})} \\
+4 & \textbf{FAMILY} & \textbf{FAMILY(\ul{family\_id}}, family\_name, origin\_story, \emph{created\_by*}, created\_at\textbf{)} \\
+5 & \textbf{BRANCH} & \textbf{BRANCH(\ul{branch\_id}}, branch\_name, \emph{family\_id*}, \emph{parent\_branch\_id*}\textbf{)} \\
+6 & \textbf{FAMILY\_MEMBER} & \textbf{FAMILY\_MEMBER(\ul{member\_id}}, full\_name, birth\_date, death\_date, gender, occupation, education\_level, location, generation\_level, verification\_status, \emph{verified\_by*}, verified\_at, \emph{family\_id*}, \emph{branch\_id*}, \emph{user\_id*}\textbf{)} \\
+7 & \textbf{RELATIONSHIP} & \textbf{RELATIONSHIP(\ul{rel\_id}}, \emph{member\_id\_a*}, \emph{member\_id\_b*}, relation\_type\textbf{)} \\
+8 & \textbf{MARRIAGE} & \textbf{MARRIAGE(\ul{marriage\_id}}, \emph{member\_id\_1*}, \emph{member\_id\_2*}, marriage\_date, status\textbf{)} \\
+9 & \textbf{POST} & \textbf{POST(\ul{post\_id}}, \emph{author\_id*}, \emph{family\_id*}, content, created\_at\textbf{)} \\
+10 & \textbf{COMMENT} & \textbf{COMMENT(\ul{comment\_id}}, \emph{post\_id*}, \emph{user\_id*}, content, created\_at\textbf{)} \\
+11 & \textbf{REACTION} & \textbf{REACTION(\ul{reaction\_id}}, \emph{post\_id*}, \emph{user\_id*}, reaction\_type\textbf{)} \\
+12 & \textbf{PHOTO} & \textbf{PHOTO(\ul{photo\_id}}, \emph{post\_id*}, url, \emph{uploaded\_by*}, uploaded\_at\textbf{)} \\
+13 & \textbf{EVENT} & \textbf{EVENT(\ul{event\_id}}, \emph{family\_id*}, title, description, start\_time, location, \emph{created\_by*}\textbf{)} \\
+14 & \textbf{EVENT\_PARTICIPANT} & \textbf{EVENT\_PARTICIPANT(\ul{event\_id}}, \textbf{\ul{user\_id}}, rsvp\_status\textbf{)} \\
+15 & \textbf{EVENT\_GALLERY} & \textbf{EVENT\_GALLERY(\ul{gallery\_id}}, \emph{event\_id*}, url, \emph{uploaded\_by*}, uploaded\_at\textbf{)} \\
+16 & \textbf{EVENT\_REMINDER} & \textbf{EVENT\_REMINDER(\ul{reminder\_id}}, \emph{event\_id*}, \emph{user\_id*}, remind\_at, method, status\textbf{)} \\
+17 & \textbf{HISTORICAL\_DOCUMENT} & \textbf{HISTORICAL\_DOCUMENT(\ul{doc\_id}}, \emph{family\_id*}, title, description, file\_url, category, created\_at\textbf{)} \\
+18 & \textbf{FAMILY\_STORY} & \textbf{FAMILY\_STORY(\ul{story\_id}}, \emph{family\_id*}, title, content, \emph{author\_id*}, created\_at\textbf{)} \\
+19 & \textbf{ARCHIVE} & \textbf{ARCHIVE(\ul{archive\_id}}, \emph{family\_id*}, title, file\_url, description, created\_at\textbf{)} \\
+20 & \textbf{AI\_QUERY\_LOG} & \textbf{AI\_QUERY\_LOG(\ul{log\_id}}, \emph{user\_id*}, query\_text, query\_type, response\_summary, created\_at\textbf{)} \\
+21 & \textbf{AI\_RECOMMENDATION} & \textbf{AI\_RECOMMENDATION(\ul{rec\_id}}, \emph{user\_id*}, target\_type, target\_id, score, reason, created\_at\textbf{)} \\
+22 & \textbf{AUDIT\_LOG} & \textbf{AUDIT\_LOG(\ul{log\_id}}, \emph{user\_id*}, action, target\_table, target\_id, created\_at\textbf{)} \\
+23 & \textbf{REPORT} & \textbf{REPORT(\ul{report\_id}}, report\_type, file\_url, \emph{generated\_by*}, generated\_at\textbf{)} \\
+24 & \textbf{SYSTEM\_CONFIG} & \textbf{SYSTEM\_CONFIG(\ul{config\_key}}, config\_value, description, \emph{updated\_by*}, updated\_at\textbf{)} \\
+\end{longtable}
+
+Ghi chú: hai quan hệ RELATIONSHIP và MARRIAGE tuy đều biểu diễn mối liên kết N--N phản thân giữa hai bản ghi FAMILY\_MEMBER nhưng được giữ làm quan hệ độc lập (không gộp như USER\_ROLE/EVENT\_PARTICIPANT) vì mỗi bản ghi mang thuộc tính mô tả riêng (relation\_type, marriage\_date, status) và một cặp thành viên có thể có nhiều bản ghi hôn nhân theo thời gian.
+
+\hypertarget{liux1ec7t-kuxea-khuxf3a-chuxednh-vuxe0-khuxf3a-ngoux1ea1i-cux1ee7a-cuxe1c-quan-hux1ec7}{%
+\subsection{\texorpdfstring{\textbf{3.2. Liệt kê khóa chính và khóa ngoại của các quan hệ}}{3.2. Liệt kê khóa chính và khóa ngoại của các quan hệ}}\label{liux1ec7t-kuxea-khuxf3a-chuxednh-vuxe0-khuxf3a-ngoux1ea1i-cux1ee7a-cuxe1c-quan-hux1ec7}}
+
+Bảng dưới đây tổng hợp khóa chính (PK), khóa ngoại (FK) và bảng được tham chiếu tương ứng của từng quan hệ trong lược đồ.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3048}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1830}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2717}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2405}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Quan hệ}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Khóa chính (PK)}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Khóa ngoại (FK)}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Tham chiếu đến}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+USER & user\_id & --- & --- \\
+ROLE & role\_id & --- & --- \\
+USER\_ROLE & (user\_id, role\_id) & user\_id; role\_id & USER; ROLE \\
+FAMILY & family\_id & created\_by & USER \\
+BRANCH & branch\_id & family\_id; parent\_branch\_id & FAMILY; BRANCH (tự tham chiếu) \\
+FAMILY\_MEMBER & member\_id & family\_id; branch\_id; user\_id; verified\_by & FAMILY; BRANCH; USER; USER \\
+RELATIONSHIP & rel\_id & member\_id\_a; member\_id\_b & FAMILY\_MEMBER; FAMILY\_MEMBER \\
+MARRIAGE & marriage\_id & member\_id\_1; member\_id\_2 & FAMILY\_MEMBER; FAMILY\_MEMBER \\
+POST & post\_id & author\_id; family\_id & USER; FAMILY \\
+COMMENT & comment\_id & post\_id; user\_id & POST; USER \\
+REACTION & reaction\_id & post\_id; user\_id & POST; USER \\
+PHOTO & photo\_id & post\_id; uploaded\_by & POST; USER \\
+EVENT & event\_id & family\_id; created\_by & FAMILY; USER \\
+EVENT\_PARTICIPANT & (event\_id, user\_id) & event\_id; user\_id & EVENT; USER \\
+EVENT\_GALLERY & gallery\_id & event\_id; uploaded\_by & EVENT; USER \\
+EVENT\_REMINDER & reminder\_id & event\_id; user\_id & EVENT; USER \\
+HISTORICAL\_DOCUMENT & doc\_id & family\_id & FAMILY \\
+FAMILY\_STORY & story\_id & family\_id; author\_id & FAMILY; USER \\
+ARCHIVE & archive\_id & family\_id & FAMILY \\
+AI\_QUERY\_LOG & log\_id & user\_id & USER \\
+AI\_RECOMMENDATION & rec\_id & user\_id & USER (target\_id không ràng buộc FK do đa hình) \\
+AUDIT\_LOG & log\_id & user\_id & USER \\
+REPORT & report\_id & generated\_by & USER \\
+SYSTEM\_CONFIG & config\_key & updated\_by & USER \\
+\end{longtable}
+
+\hypertarget{liux1ec7t-kuxea-cuxe1c-constraint-cux1ee7a-cuxe1c-quan-hux1ec7}{%
+\subsection{\texorpdfstring{\textbf{3.3. Liệt kê các constraint của các quan hệ}}{3.3. Liệt kê các constraint của các quan hệ}}\label{liux1ec7t-kuxea-cuxe1c-constraint-cux1ee7a-cuxe1c-quan-hux1ec7}}
+
+Ngoài các ràng buộc khóa chính và khóa ngoại đã trình bày ở mục 3.2 (và ràng buộc NOT NULL trên từng thuộc tính đã trình bày chi tiết tại mục 2.2), hệ thống còn áp dụng các ràng buộc UNIQUE, CHECK (miền giá trị) và DEFAULT sau nhằm đảm bảo tính toàn vẹn và nhất quán dữ liệu:
+
+\renewcommand{\arraystretch}{1.8}
+\begin{longtable}[]{@{}
+		>{\raggedright\arraybackslash}p{0.02\textwidth}
+		>{\raggedright\arraybackslash}p{0.30\textwidth}
+		@{\hspace{0.25cm}}
+		>{\raggedright\arraybackslash}p{0.38\textwidth}
+		>{\raggedright\arraybackslash}p{0.32\textwidth}
+		@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\textbf{STT}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Quan hệ}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Ràng buộc (Constraint)}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Diễn giải}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & USER & UNIQUE(email) & Đảm bảo mỗi tài khoản có một email đăng nhập duy nhất. \\
+2 & USER & CHECK status IN (\textquotesingle active\textquotesingle,\textquotesingle inactive\textquotesingle,\textquotesingle banned\textquotesingle); DEFAULT \textquotesingle active\textquotesingle{} & Giới hạn miền giá trị trạng thái tài khoản. \\
+3 & ROLE & UNIQUE(role\_name) & Không cho phép trùng tên vai trò. \\
+4 & FAMILY\_MEMBER & UNIQUE(user\_id) & Đảm bảo quan hệ 0..1: một User chỉ liên kết với tối đa một FamilyMember. \\
+5 & FAMILY\_MEMBER & CHECK verification\_status IN (\textquotesingle pending\textquotesingle,\textquotesingle verified\textquotesingle,\textquotesingle rejected\textquotesingle); DEFAULT \textquotesingle pending\textquotesingle{} & Giới hạn miền giá trị trạng thái xác minh thành viên. \\
+6 & BRANCH & CHECK branch\_id \textless\textgreater{} parent\_branch\_id & Ngăn một chi/nhánh tự làm chi cha của chính nó. \\
+7 & RELATIONSHIP & CHECK member\_id\_a \textless\textgreater{} member\_id\_b & Ngăn một thành viên tự liên kết quan hệ huyết thống với chính mình. \\
+8 & RELATIONSHIP & CHECK relation\_type IN (\textquotesingle parent\textquotesingle,\textquotesingle child\textquotesingle,\textquotesingle sibling\textquotesingle) & Giới hạn miền giá trị loại quan hệ huyết thống. \\
+9 & MARRIAGE & CHECK member\_id\_1 \textless\textgreater{} member\_id\_2 & Ngăn một thành viên tự kết hôn với chính mình. \\
+10 & MARRIAGE & CHECK status IN (\textquotesingle married\textquotesingle,\textquotesingle divorced\textquotesingle,\textquotesingle widowed\textquotesingle) & Giới hạn miền giá trị trạng thái hôn nhân. \\
+11 & REACTION & UNIQUE(post\_id, user\_id) & Mỗi người dùng chỉ được thả một reaction cho mỗi bài viết. \\
+12 & EVENT\_PARTICIPANT & CHECK rsvp\_status IN (\textquotesingle yes\textquotesingle,\textquotesingle no\textquotesingle,\textquotesingle maybe\textquotesingle); DEFAULT \textquotesingle maybe\textquotesingle{} & Giới hạn miền giá trị trạng thái RSVP. \\
+13 & EVENT\_REMINDER & CHECK method IN (\textquotesingle push\textquotesingle,\textquotesingle email\textquotesingle,\textquotesingle sms\textquotesingle); DEFAULT \textquotesingle push\textquotesingle{} & Giới hạn phương thức gửi nhắc nhở. \\
+14 & EVENT\_REMINDER & CHECK status IN (\textquotesingle pending\textquotesingle,\textquotesingle sent\textquotesingle); DEFAULT \textquotesingle pending\textquotesingle{} & Giới hạn trạng thái gửi nhắc nhở. \\
+15 & HISTORICAL\_DOCUMENT & CHECK category IN (\textquotesingle document\textquotesingle,\textquotesingle notable\_member\textquotesingle) & Giới hạn miền giá trị phân loại tài liệu lịch sử. \\
+16 & AI\_QUERY\_LOG &
+CHECK query\_type IN
+\newline
+(\textquotesingle search\textquotesingle,
+\textquotesingle assistant\textquotesingle,
+\textquotesingle summarization\textquotesingle,
+\textquotesingle relationship\_explain\textquotesingle)
+&
+Giới hạn miền giá trị
+\newline
+loại truy vấn AI. \\
+17 & AI\_RECOMMENDATION & CHECK target\_type IN (\textquotesingle member\textquotesingle,\textquotesingle post\textquotesingle,\textquotesingle document\textquotesingle) & Giới hạn miền giá trị loại đối tượng được gợi ý. \\
+18 & AUDIT\_LOG & Ràng buộc nghiệp vụ: chỉ cho phép INSERT (append-only) & Không cho phép UPDATE/DELETE nhằm bảo toàn nhật ký kiểm toán; thực hiện bằng trigger hoặc phân quyền ở mức vật lý. \\
+19 & Toàn bộ các bảng có created\_at/updated\_at/
+verified\_at/generated\_at/uploaded\_at
+&
+DEFAULT giá trị thời điểm hiện tại
+\newline
+(CURRENT\_TIMESTAMP)
+&
+Tự động ghi nhận thời điểm tạo/cập nhật bản ghi
+\newline
+khi không có giá trị được cung cấp. \\
+20 & Toàn bộ các cột khóa chính, khóa ngoại bắt buộc (xem mục 3.2) & NOT NULL & Đảm bảo toàn vẹn tham chiếu và định danh bản ghi. \\
+\end{longtable}
+
+\hypertarget{chuux1ea9n-huxf3a-dux1eef-liux1ec7u}{%
+\subsection{\texorpdfstring{\textbf{3.4. Chuẩn hóa dữ liệu}}{3.4. Chuẩn hóa dữ liệu}}\label{chuux1ea9n-huxf3a-dux1eef-liux1ec7u}}
+
+Để minh họa và kiểm chứng quá trình chuẩn hóa dẫn đến lược đồ quan hệ ở mục 3.1, phần này áp dụng lần lượt các dạng chuẩn (1NF → 2NF → 3NF → BCNF) trên một ví dụ điển hình: biểu mẫu "Đăng ký tham gia sự kiện gia đình" --- nơi dữ liệu ban đầu thường được thu thập ở dạng chưa chuẩn hóa (một sự kiện đi kèm danh sách nhiều người tham gia trong cùng một bản ghi). Sau đó, kết quả chuẩn hóa được đối chiếu với toàn bộ 24 quan hệ của lược đồ để khẳng định lược đồ đã đạt chuẩn BCNF.
+
+\hypertarget{dux1ea1ng-chuux1ea9n-thux1ee9-nhux1ea5t-1nf}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{3.4.1. Dạng chuẩn thứ nhất (1NF)}}}{3.4.1. Dạng chuẩn thứ nhất (1NF)}}\label{dux1ea1ng-chuux1ea9n-thux1ee9-nhux1ea5t-1nf}}
+
+Quy tắc: một quan hệ đạt 1NF khi mọi thuộc tính đều mang giá trị nguyên tố (atomic), không có thuộc tính đa trị (multivalued) hoặc nhóm lặp (repeating group).
+
+Dữ liệu thu thập ban đầu ở dạng chưa chuẩn hóa (UNF) thường có cấu trúc: mỗi sự kiện đi kèm một danh sách người tham gia lồng bên trong cùng một bản ghi:
+
+\emph{EVENT\_REGISTRATION\_UNF(event\_id, event\_title, event\_location, family\_id, family\_name, \{user\_id, user\_name, user\_email, rsvp\_status\})}
+
+Thuộc tính lồng \{user\_id, user\_name, user\_email, rsvp\_status\} là một nhóm lặp vì một sự kiện có thể có nhiều người tham gia. Để đạt 1NF, nhóm lặp được tách thành các dòng riêng biệt, mỗi dòng tương ứng với một cặp (sự kiện, người tham gia):
+
+\emph{EVENT\_REGISTRATION\_1NF(event\_id, event\_title, event\_location, family\_id, family\_name, user\_id, user\_name, user\_email, rsvp\_status)}
+
+với khóa chính là khóa kép (event\_id, user\_id). Quan hệ này đã đạt 1NF vì mọi thuộc tính đều nguyên tố và không còn nhóm lặp. Áp dụng nguyên tắc tương tự khi thiết kế mô hình quan niệm ở Chương 2, mọi thuộc tính đa trị tiềm ẩn đều đã được tách thành thực thể/quan hệ riêng ngay từ đầu (ví dụ: một Post có nhiều Photo → tách thành quan hệ PHOTO riêng; một FamilyMember có nhiều quan hệ huyết thống → tách thành quan hệ RELATIONSHIP riêng). Do đó, cả 24 quan hệ trong lược đồ ở mục 3.1 đều thỏa mãn 1NF.
+
+\hypertarget{dux1ea1ng-chuux1ea9n-thux1ee9-hai-2nf}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{3.4.2. Dạng chuẩn thứ hai (2NF)}}}{3.4.2. Dạng chuẩn thứ hai (2NF)}}\label{dux1ea1ng-chuux1ea9n-thux1ee9-hai-2nf}}
+
+Quy tắc: một quan hệ đạt 2NF khi đã đạt 1NF và không tồn tại phụ thuộc bộ phận (partial dependency) --- tức mọi thuộc tính không khóa phải phụ thuộc hàm vào toàn bộ khóa chính, chứ không phụ thuộc vào một phần của khóa chính (composite key).
+
+Xét quan hệ EVENT\_REGISTRATION\_1NF với khóa chính kép (event\_id, user\_id), các phụ thuộc hàm (FD) xác định được là:
+
+\begin{itemize}
+\item
+  event\_id → event\_title, event\_location, family\_id, family\_name (chỉ phụ thuộc vào một phần khóa)
+\item
+  user\_id → user\_name, user\_email (chỉ phụ thuộc vào một phần khóa)
+\item
+  (event\_id, user\_id) → rsvp\_status (phụ thuộc đầy đủ vào toàn bộ khóa)
+\end{itemize}
+
+Vì event\_title, event\_location, family\_id, family\_name chỉ phụ thuộc vào event\_id (không phụ thuộc vào user\_id), và user\_name, user\_email chỉ phụ thuộc vào user\_id, nên quan hệ EVENT\_REGISTRATION\_1NF vi phạm 2NF do tồn tại phụ thuộc bộ phận. Quan hệ được tách thành ba quan hệ sau để loại bỏ phụ thuộc bộ phận:
+
+\begin{itemize}
+\item
+  EVENT(event\_id, event\_title, event\_location, family\_id, family\_name)
+\item
+  USER(user\_id, user\_name, user\_email)
+\item
+  EVENT\_PARTICIPANT(event\_id, user\_id, rsvp\_status)
+\end{itemize}
+
+Đối chiếu với lược đồ ở mục 3.1: các quan hệ có khóa chính đơn (surrogate key) như USER, FAMILY, EVENT, POST\ldots{} không có khả năng phát sinh phụ thuộc bộ phận. Hai quan hệ có khóa chính kép là USER\_ROLE(user\_id, role\_id) và EVENT\_PARTICIPANT(event\_id, user\_id) đều không chứa thuộc tính không khóa nào chỉ phụ thuộc vào một phần khóa (USER\_ROLE không có thuộc tính mô tả riêng; rsvp\_status của EVENT\_PARTICIPANT phụ thuộc vào toàn bộ khóa kép). Do đó, toàn bộ 24 quan hệ của lược đồ đều thỏa mãn 2NF.
+
+\hypertarget{dux1ea1ng-chuux1ea9n-thux1ee9-ba-3nf}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{3.4.3. Dạng chuẩn thứ ba (3NF)}}}{3.4.3. Dạng chuẩn thứ ba (3NF)}}\label{dux1ea1ng-chuux1ea9n-thux1ee9-ba-3nf}}
+
+Quy tắc: một quan hệ đạt 3NF khi đã đạt 2NF và không tồn tại phụ thuộc bắc cầu (transitive dependency) --- tức không có thuộc tính không khóa nào phụ thuộc vào một thuộc tính không khóa khác.
+
+Tiếp tục xét quan hệ EVENT(event\_id, event\_title, event\_location, family\_id, family\_name) thu được ở bước 2NF: tồn tại chuỗi phụ thuộc event\_id → family\_id → family\_name, nghĩa là family\_name phụ thuộc bắc cầu vào event\_id thông qua thuộc tính không khóa family\_id. Quan hệ EVENT vì vậy vi phạm 3NF và cần được tách tiếp:
+
+\begin{itemize}
+\item
+  EVENT(event\_id, event\_title, event\_location, family\_id) --- family\_id là khóa ngoại
+\item
+  FAMILY(family\_id, family\_name)
+\end{itemize}
+
+Sau bước tách này, kết quả trùng khớp với các quan hệ EVENT và FAMILY đã có sẵn trong lược đồ ở mục 3.1. Rà soát tương tự trên toàn bộ 24 quan hệ: mỗi quan hệ chỉ chứa các thuộc tính mô tả trực tiếp thực thể mà nó đại diện, các thông tin thuộc về thực thể khác (ví dụ tên dòng họ, tên người dùng) đều được truy xuất gián tiếp qua khóa ngoại thay vì lưu trực tiếp. Do đó, không còn phụ thuộc bắc cầu nào tồn tại và toàn bộ 24 quan hệ đều thỏa mãn 3NF.
+
+\hypertarget{dux1ea1ng-chuux1ea9n-boycecodd-bcnf}{%
+\subsubsection{\texorpdfstring{\emph{\textbf{3.4.4. Dạng chuẩn Boyce--Codd (BCNF)}}}{3.4.4. Dạng chuẩn Boyce--Codd (BCNF)}}\label{dux1ea1ng-chuux1ea9n-boycecodd-bcnf}}
+
+Quy tắc: một quan hệ đạt BCNF khi với mọi phụ thuộc hàm X → Y không tầm thường, X phải là một siêu khóa (superkey) của quan hệ --- tức mọi thuộc tính quyết định (determinant) đều phải là (chứa) khóa chính hoặc khóa dự tuyển (candidate key).
+
+Kiểm tra bốn quan hệ kết quả của ví dụ (EVENT, FAMILY, USER, EVENT\_PARTICIPANT):
+
+\begin{itemize}
+\item
+  EVENT(event\_id, event\_title, event\_location, family\_id): duy nhất một FD là event\_id → \{event\_title, event\_location, family\_id\}; event\_id chính là khóa chính → đạt BCNF.
+\item
+  FAMILY(family\_id, family\_name): family\_id → family\_name; family\_id là khóa chính → đạt BCNF.
+\item
+  USER(user\_id, user\_name, user\_email): user\_id → \{user\_name, user\_email\}; user\_id là khóa chính → đạt BCNF.
+\item
+  EVENT\_PARTICIPANT(event\_id, user\_id, rsvp\_status): (event\_id, user\_id) → rsvp\_status; khóa kép (event\_id, user\_id) là khóa chính, không có thuộc tính quyết định nào khác → đạt BCNF.
+\end{itemize}
+
+Áp dụng cách kiểm tra tương tự cho các quan hệ còn lại có khóa chính kép hoặc chứa nhiều khóa ngoại trong lược đồ:
+
+\begin{itemize}
+\item
+  USER\_ROLE(user\_id, role\_id): không có thuộc tính không khóa; điều kiện BCNF được thỏa mãn một cách hiển nhiên.
+\item
+  RELATIONSHIP(rel\_id, member\_id\_a, member\_id\_b, relation\_type): thuộc tính quyết định duy nhất là rel\_id (khóa chính); cặp (member\_id\_a, member\_id\_b) tuy có thể xác định relation\_type trên thực tế nhưng cũng được ràng buộc UNIQUE nên vẫn là một khóa dự tuyển → đạt BCNF.
+\item
+  MARRIAGE(marriage\_id, member\_id\_1, member\_id\_2, marriage\_date, status): tương tự RELATIONSHIP, thuộc tính quyết định là marriage\_id (khóa chính) → đạt BCNF.
+\end{itemize}
+
+Đối với các quan hệ còn lại trong lược đồ (FAMILY\_MEMBER, POST, COMMENT, PHOTO, EVENT, EVENT\_GALLERY, EVENT\_REMINDER, HISTORICAL\_DOCUMENT, FAMILY\_STORY, ARCHIVE, AI\_QUERY\_LOG, AI\_RECOMMENDATION, AUDIT\_LOG, REPORT, SYSTEM\_CONFIG, BRANCH), mỗi quan hệ đều sử dụng một khóa chính đại diện (surrogate key) là thuộc tính quyết định duy nhất cho toàn bộ các thuộc tính không khóa còn lại; không tồn tại thuộc tính không khóa nào có khả năng xác định thuộc tính không khóa khác. Do đó, toàn bộ 24 quan hệ của lược đồ tại mục 3.1 đều đạt chuẩn BCNF, khẳng định lược đồ quan hệ không còn dư thừa dữ liệu và đã sẵn sàng để chuyển sang giai đoạn thiết kế mức vật lý.
