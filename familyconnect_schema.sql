@@ -8,14 +8,14 @@
 -- 1. TẠO DATABASE
 -- ============================================================
 -- Tạo database cho hệ thống FamilyConnect
-CREATE DATABASE familyconnect_db
-    WITH ENCODING   = 'UTF8'
-         LC_COLLATE = 'en_US.UTF-8'
-         LC_CTYPE   = 'en_US.UTF-8'
-         TEMPLATE   = template0;
+--CREATE DATABASE familyconnect_db
+    --WITH ENCODING   = 'UTF8'
+         --LC_COLLATE = 'en_US.UTF-8'
+         --LC_CTYPE   = 'en_US.UTF-8'
+         --TEMPLATE   = template0;
 
 -- Kết nối tới database vừa tạo (psql) trước khi chạy các lệnh tiếp theo
-\c familyconnect_db
+--\c familyconnect_db
 
 -- Kích hoạt các extension cần thiết
 CREATE EXTENSION IF NOT EXISTS pgcrypto;   -- sinh khóa chính dạng UUID (gen_random_uuid)
